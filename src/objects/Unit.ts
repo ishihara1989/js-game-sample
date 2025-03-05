@@ -161,6 +161,9 @@ export class Unit extends Phaser.GameObjects.Container {
   }
   
   private updateDirection(angle: number): void {
+    // 方向インディケーターがない場合は何もしない
+    if (!this.directionIndicator) return;
+    
     // 方向インディケーターの回転
     this.directionIndicator.clear();
     this.directionIndicator.fillStyle(0xffffff, 1);
@@ -239,6 +242,8 @@ export class Unit extends Phaser.GameObjects.Container {
   
   // 通常攻撃（attackからperformAttackに変更）
   performAttack(target: Unit): void {
+    if (!target) return; // ターゲットがない場合は何もしない
+    
     // 攻撃クールダウンを設定
     this.attackCooldown = this.attackCooldownMax;
     
@@ -249,7 +254,9 @@ export class Unit extends Phaser.GameObjects.Container {
     target.takeDamage(damage);
     
     // 攻撃エフェクトを表示
-    this.battleScene.showAttackEffect(this, target);
+    if (this.battleScene) {
+      this.battleScene.showAttackEffect(this, target);
+    }
     
     console.log(`${this.name} attacks ${target.name} for ${damage} damage!`);
   }
@@ -270,7 +277,9 @@ export class Unit extends Phaser.GameObjects.Container {
     this.target.takeDamage(damage);
     
     // スキルエフェクトを表示
-    this.battleScene.showSkillEffect(this, this.target);
+    if (this.battleScene) {
+      this.battleScene.showSkillEffect(this, this.target);
+    }
     
     console.log(`${this.name} uses skill on ${this.target.name} for ${damage} damage!`);
   }
