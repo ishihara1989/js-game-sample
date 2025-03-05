@@ -32,6 +32,41 @@ yarn start
 
 ブラウザで http://localhost:8080 を開いてゲームを確認できます。
 
+## ビルド方法
+
+開発が完了し、プロジェクトを本番環境にデプロイする準備ができたら、以下のコマンドでビルドを実行します：
+
+```bash
+npm run build
+# または
+yarn build
+```
+
+ビルドが成功すると、`dist` ディレクトリに最適化されたファイルが生成されます。これらのファイルは任意のウェブサーバーにデプロイできます。
+
+### ビルド出力の確認方法
+
+ビルド後の出力を確認するには、`dist` ディレクトリの内容を任意のウェブサーバーでホストするか、以下のようなシンプルなHTTPサーバーを使用します：
+
+```bash
+# グローバルにhttpサーバーをインストール
+npm install -g http-server
+
+# distディレクトリでサーバーを起動
+cd dist
+http-server -o
+```
+
+または、ローカルで実行するならPythonの組み込みサーバーも利用できます：
+
+```bash
+# Python 3の場合
+cd dist
+python -m http.server
+```
+
+ブラウザで http://localhost:8000 を開くと、ビルドされたアプリケーションが表示されます。
+
 ## 動作確認の手順
 
 1. `npm start` でローカル開発サーバーを起動します
@@ -69,6 +104,7 @@ yarn start
 ├── webpack.config.js     # Webpackの設定
 ├── tsconfig.json         # TypeScriptの設定
 ├── package.json          # プロジェクト依存関係
+├── .gitignore            # Git管理対象外ファイルの設定
 └── README.md             # プロジェクト説明
 ```
 
