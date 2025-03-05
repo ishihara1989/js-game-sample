@@ -1,5 +1,7 @@
 import Phaser from 'phaser';
 import { MainScene } from './scenes/MainScene';
+import { BattleScene } from './scenes/BattleScene';
+import { ResultScene } from './scenes/ResultScene';
 
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
@@ -7,7 +9,7 @@ const config: Phaser.Types.Core.GameConfig = {
   height: 600,
   parent: 'game-container',
   backgroundColor: '#333333',
-  scene: [MainScene],
+  scene: [MainScene, BattleScene, ResultScene],
   physics: {
     default: 'arcade',
     arcade: {
