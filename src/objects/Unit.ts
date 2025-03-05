@@ -20,7 +20,7 @@ export class Unit extends Phaser.GameObjects.Container {
   readonly isPlayer: boolean;
   readonly name: string;
   readonly maxHealth: number;
-  readonly attack: number;
+  readonly attackPower: number; // attackからattackPowerに変更
   readonly defense: number;
   readonly speed: number;
   
@@ -56,7 +56,7 @@ export class Unit extends Phaser.GameObjects.Container {
     this.name = config.name;
     this.maxHealth = config.maxHealth;
     this.health = config.maxHealth;
-    this.attack = config.attack;
+    this.attackPower = config.attack; // attackからattackPowerに変更
     this.defense = config.defense;
     this.speed = config.speed;
     this.battleScene = config.scene as BattleScene;
@@ -150,7 +150,7 @@ export class Unit extends Phaser.GameObjects.Container {
       
       // 向きを更新
       this.updateDirection(angle);
-    } else {
+    } else if (this.target) { // ターゲットがnullでないことを確認
       // ターゲットの方向を向く
       const angle = Phaser.Math.Angle.Between(
         this.x, this.y,
@@ -178,11 +178,12 @@ export class Unit extends Phaser.GameObjects.Container {
   
   private updateAI(delta: number): void {
     // プレイヤーユニットは手動制御を想定（現在はAIで自動行動）
+    if (!this.target) return; // ターゲットがない場合は処理しない
     
     // 攻撃可能距離かどうかを判定
     const distanceToTarget = Phaser.Math.Distance.Between(
       this.x, this.y,
-      this.target!.x, this.target!.y
+      this.target.x, this.target.y
     );
     
     // 攻撃範囲（近接攻撃なら100程度、遠距離なら300程度）
@@ -195,7 +196,7 @@ export class Unit extends Phaser.GameObjects.Container {
         if (this.skillCooldown >= this.skillMaxCooldown) {
           this.useSkill();
         } else {
-          this.attack(this.target!);
+          this.performAttack(this.target);
         }
       }
     } else {
@@ -236,13 +237,13 @@ export class Unit extends Phaser.GameObjects.Container {
     this.moveCooldown = this.moveCooldownMax;
   }
   
-  // 通常攻撃
-  attack(target: Unit): void {
+  // 通常攻撃（attackからperformAttackに変更）
+  performAttack(target: Unit): void {
     // 攻撃クールダウンを設定
     this.attackCooldown = this.attackCooldownMax;
     
     // ダメージ計算
-    const damage = Math.max(1, this.attack - target.defense / 2);
+    const damage = Math.max(1, this.attackPower - target.defense / 2);
     
     // ターゲットにダメージを与える
     target.takeDamage(damage);
@@ -263,7 +264,7 @@ export class Unit extends Phaser.GameObjects.Container {
     this.attackCooldown = this.attackCooldownMax;
     
     // スキルダメージ計算（通常攻撃の2倍）
-    const damage = Math.max(2, this.attack * 2 - this.target.defense);
+    const damage = Math.max(2, this.attackPower * 2 - this.target.defense);
     
     // ターゲットにダメージを与える
     this.target.takeDamage(damage);
