@@ -67,6 +67,27 @@ python -m http.server
 
 ブラウザで http://localhost:8000 を開くと、ビルドされたアプリケーションが表示されます。
 
+## GitHub Pages自動デプロイ
+
+このプロジェクトは、mainブランチに変更をプッシュすると自動的にGitHub Pagesにデプロイされるように設定されています。
+
+### 自動デプロイの仕組み
+
+1. mainブランチに変更がプッシュされると、GitHub Actionsワークフローが起動します
+2. ワークフローはプロジェクトをビルドし、生成されたファイルをGitHub Pagesにデプロイします
+3. デプロイが成功すると、以下のURLでアプリケーションにアクセスできます：
+   
+   https://ishihara1989.github.io/js-game-sample/
+
+### 手動デプロイの方法
+
+手動でデプロイを行いたい場合は、GitHub Actionsタブから「Build and Deploy」ワークフローを手動で実行できます：
+
+1. リポジトリの「Actions」タブに移動
+2. 左側のワークフローリストから「Build and Deploy」を選択
+3. 「Run workflow」ボタンをクリック
+4. デフォルトのブランチ（main）を選択して「Run workflow」をクリック
+
 ## 動作確認の手順
 
 1. `npm start` でローカル開発サーバーを起動します
@@ -133,6 +154,9 @@ python -m http.server
 ├── public/               # 静的ファイル
 │   └── index.html        # HTMLテンプレート
 ├── dist/                 # ビルド出力ディレクトリ
+├── .github/              # GitHub関連の設定
+│   └── workflows/        # GitHub Actionsワークフロー定義
+│       └── deploy.yml    # デプロイワークフロー設定
 ├── webpack.config.js     # Webpackの設定
 ├── tsconfig.json         # TypeScriptの設定
 ├── package.json          # プロジェクト依存関係
@@ -145,6 +169,8 @@ python -m http.server
 - [Phaser 3](https://phaser.io/phaser3) - HTML5ゲームフレームワーク
 - [TypeScript](https://www.typescriptlang.org/) - 型付きJavaScript
 - [Webpack](https://webpack.js.org/) - モジュールバンドラー
+- [GitHub Actions](https://github.com/features/actions) - CI/CD自動化
+- [GitHub Pages](https://pages.github.com/) - 静的サイトホスティング
 
 ## 開発について
 
