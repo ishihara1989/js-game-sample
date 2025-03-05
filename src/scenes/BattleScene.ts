@@ -26,6 +26,12 @@ export class BattleScene extends Phaser.Scene {
   }
   
   create(): void {
+    // デバッグテキスト（最初に作成）
+    this.debugText = this.add.text(10, 10, 'Battle Starting...', { 
+      font: '16px Arial', 
+      color: '#ffffff' 
+    });
+    
     // 背景の設定
     this.createBackground();
     
@@ -34,12 +40,6 @@ export class BattleScene extends Phaser.Scene {
     
     // UI要素の作成
     this.createUI();
-    
-    // デバッグテキスト
-    this.debugText = this.add.text(10, 10, 'Battle Started', { 
-      font: '16px Arial', 
-      color: '#ffffff' 
-    });
     
     // バトル開始
     this.startBattle();
@@ -138,6 +138,10 @@ export class BattleScene extends Phaser.Scene {
   }
   
   private updateUI(): void {
+    if (!this.playerHealthBar || !this.enemyHealthBar || !this.playerSkillBar || !this.enemySkillBar) {
+      return; // UIが初期化されていない場合は何もしない
+    }
+    
     // HPバーのクリア
     this.playerHealthBar.clear();
     this.enemyHealthBar.clear();
@@ -213,6 +217,8 @@ export class BattleScene extends Phaser.Scene {
   }
   
   private updateDebugText(): void {
+    if (!this.debugText) return;
+    
     this.debugText.setText(
       `Player: HP ${Math.floor(this.playerUnit.health)}/${this.playerUnit.maxHealth}, Skill: ${Math.floor(this.playerUnit.skillCooldown)}/${this.playerUnit.skillMaxCooldown}\n` +
       `Enemy: HP ${Math.floor(this.enemyUnit.health)}/${this.enemyUnit.maxHealth}, Skill: ${Math.floor(this.enemyUnit.skillCooldown)}/${this.enemyUnit.skillMaxCooldown}`
@@ -221,7 +227,9 @@ export class BattleScene extends Phaser.Scene {
   
   private startBattle(): void {
     this.battleActive = true;
-    this.debugText.setText('Battle Started');
+    if (this.debugText) {
+      this.debugText.setText('Battle Started');
+    }
   }
   
   private checkBattleEnd(): void {
@@ -253,7 +261,7 @@ export class BattleScene extends Phaser.Scene {
     this.battleActive = false;
     
     // バトル結果のデバッグ表示
-    if (this.battleResult) {
+    if (this.battleResult && this.debugText) {
       this.debugText.setText(`Battle Ended: ${this.battleResult.victory ? 'Victory!' : 'Defeat...'}`); 
     }
     
