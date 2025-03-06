@@ -94,11 +94,14 @@ export class Stage {
         0x3a5c3a
       );
       ground.setOrigin(0, 0);
+      // 背景に最も低い深度を設定
+      ground.setDepth(-10);
 
       // 格子状の線を描画して地面をわかりやすく
-      const gridSize = 50;
       const gridGraphics = this.scene.add.graphics();
       gridGraphics.lineStyle(1, 0x336633, 0.3);
+      // 格子も背景の一部として低い深度を設定
+      gridGraphics.setDepth(-9);
 
       // 横線
       for (let y = 0; y < this.scene.cameras.main.height; y += gridSize) {
@@ -115,11 +118,13 @@ export class Stage {
       gridGraphics.strokePath();
     } else {
       // 背景画像を指定されている場合
-      this.scene.add.image(
+      const backgroundImage = this.scene.add.image(
         this.scene.cameras.main.width / 2,
         this.scene.cameras.main.height / 2,
         this.config.backgroundKey
       );
+      // 背景画像にも低い深度を設定
+      backgroundImage.setDepth(-10);
     }
   }
 
@@ -372,3 +377,6 @@ export class Stage {
     this.status = StageStatus.NOT_STARTED;
   }
 }
+
+// グリッドサイズの定数を追加
+const gridSize = 50;
