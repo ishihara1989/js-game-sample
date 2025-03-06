@@ -1,5 +1,6 @@
 import { BattleScene } from '../../scenes/BattleScene';
 import { EnemyUnit, DropItem } from '../EnemyUnit';
+import { Unit } from '../Unit'; // Unit型をインポート
 
 /**
  * オークエネミークラス
