@@ -1,5 +1,7 @@
 import { Unit } from '../objects/Unit';
 import { Skill, SkillConfig, SkillEffectType, SkillTargetType } from './Skill';
+// Add Phaser import for direct usage
+import Phaser from 'phaser';
 
 /**
  * 遠距離攻撃スキル設定インターフェース
@@ -54,7 +56,7 @@ export class RangeSkill extends Skill {
       this.createProjectileEffect(target, () => {
         // コールバック：発射物が命中したときに実行
         target.takeDamage(damage);
-        console.log(
+        console.warn(
           `${this.owner?.name} hits ${target.name} with ${this.name} for ${damage} damage!`
         );
       });
@@ -65,7 +67,7 @@ export class RangeSkill extends Skill {
       this.createProjectileEffect(
         target,
         () => {
-          console.log(`${this.owner?.name}'s ${this.name} missed ${target.name}!`);
+          console.warn(`${this.owner?.name}'s ${this.name} missed ${target.name}!`);
         },
         true
       );
