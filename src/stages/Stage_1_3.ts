@@ -1,3 +1,4 @@
+import Phaser from 'phaser';
 import { Stage } from './Stage';
 import { BattleScene } from '../scenes/BattleScene';
 import { StageConfig, StageStatus } from '../types/StageTypes';

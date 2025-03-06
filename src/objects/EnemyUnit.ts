@@ -178,7 +178,7 @@ export class EnemyUnit extends Unit {
    */
   protected updateAI(_delta: number): void {
     // Renamed 'delta' to '_delta' to match the unused variable naming pattern
-    
+
     // 基本的な行動パターン（親クラスのAIを使用）
     super.updateAI(_delta);
 

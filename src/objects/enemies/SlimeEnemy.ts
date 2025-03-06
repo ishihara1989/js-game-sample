@@ -1,5 +1,5 @@
 import { BattleScene } from '../../scenes/BattleScene';
-import { EnemyUnit, /* DropItem */ } from '../EnemyUnit';
+import { EnemyUnit /* DropItem */ } from '../EnemyUnit';
 import { Unit } from '../Unit';
 // Include Phaser import for direct usage in this file
 import Phaser from 'phaser';
@@ -265,7 +265,7 @@ export class SlimeEnemy extends EnemyUnit {
    */
   protected updateMovement(_delta: number): void {
     // Changed parameter name to _delta since it's not used
-    
+
     // 移動クールダウン中は移動しない
     if (this.moveCooldown > 0) return;
 

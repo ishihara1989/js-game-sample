@@ -146,7 +146,7 @@ export class Unit extends Phaser.GameObjects.Container {
     this.skills.forEach((skill) => skill.update(delta));
   }
 
-  protected updateMovement(delta: number): void {
+  protected updateMovement(_delta: number): void {
     // privateからprotectedに変更
     // 移動クールダウン中は移動しない
     if (this.moveCooldown > 0) return;
@@ -211,7 +211,7 @@ export class Unit extends Phaser.GameObjects.Container {
   // privateメソッドをprotectedに変更し、サブクラスでオーバーライドできるようにする
   protected updateAI(_delta: number): void {
     // 'delta' parameter was renamed to '_delta' to indicate unused parameter intentionally
-    
+
     // プレイヤーユニットは手動制御を想定（現在はAIで自動行動）
     if (!this.target) return; // ターゲットがない場合は処理しない
 
