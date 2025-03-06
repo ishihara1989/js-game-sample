@@ -331,7 +331,7 @@ export class BattleScene extends Phaser.Scene {
       const projectile = this.add.circle(startX, startY, 10, color);
       // 投射物に高い深度を設定
       projectile.setDepth(20);
-      
+
       this.tweens.add({
         targets: projectile,
         x: target.x,
@@ -342,7 +342,7 @@ export class BattleScene extends Phaser.Scene {
           const explosion = this.add.circle(target.x, target.y, 5, color);
           // 爆発エフェクトに高い深度を設定
           explosion.setDepth(20);
-          
+
           this.tweens.add({
             targets: explosion,
             scale: { from: 1, to: 3 },
