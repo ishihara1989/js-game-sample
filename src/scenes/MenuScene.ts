@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
-import { PlayerData, DEFAULT_PLAYER_DATA } from '../types/PlayerTypes';
+import { PlayerData } from '../types/PlayerTypes';
+import { GameStateManager } from '../managers/GameStateManager';
 
 export class MenuScene extends Phaser.Scene {
   // UI要素
@@ -11,12 +12,13 @@ export class MenuScene extends Phaser.Scene {
   // メニューの状態管理
   private subMenuActive: boolean = false;
 
-  // プレイヤーデータ
-  private playerData: PlayerData;
+  // ゲームステートマネージャー
+  private gameStateManager: GameStateManager;
 
   constructor() {
     super('MenuScene');
-    this.playerData = DEFAULT_PLAYER_DATA;
+    // ゲームステートマネージャーのインスタンスを取得
+    this.gameStateManager = GameStateManager.getInstance();
   }
 
   init(): void {
@@ -27,8 +29,7 @@ export class MenuScene extends Phaser.Scene {
   }
 
   preload(): void {
-    // プレイヤーデータのロード（将来的にはセーブデータから）
-    // 現在はデフォルト値を使用
+    // 今後の拡張で必要なプリロード処理があればここに追加
   }
 
   create(): void {
@@ -61,14 +62,14 @@ export class MenuScene extends Phaser.Scene {
     // メインメニューの作成
     this.createMainMenu();
 
-    // プレイヤーステータスパネルの作成
-    this.createPlayerStatusPanel();
+    // プレイヤーステータスパネルの作成（簡略化）
+    this.createSimplePlayerStatusPanel();
 
     // バージョン情報
     const versionText = this.add.text(
       this.cameras.main.width - 10,
       this.cameras.main.height - 10,
-      'ver 0.2.0',
+      'ver 0.3.0',
       {
         fontFamily: 'Arial',
         fontSize: '12px',
@@ -191,56 +192,37 @@ export class MenuScene extends Phaser.Scene {
     return container;
   }
 
-  private createPlayerStatusPanel(): void {
+  // 簡略化したプレイヤーステータスパネル
+  private createSimplePlayerStatusPanel(): void {
     this.playerStatusPanel = this.add.container(600, 200);
 
     // パネル背景
     const background = this.add.rectangle(0, 0, 250, 300, 0x000000, 0.5);
 
-    // プレイヤー名
-    const nameText = this.add.text(-100, -120, this.playerData.name, {
+    // GameStateManagerからプレイヤーデータを取得
+    const playerData = this.gameStateManager.getPlayerData();
+
+    // 基本情報のみ表示
+    const nameText = this.add.text(-100, -120, playerData.name, {
       fontFamily: 'Arial',
       fontSize: '24px',
       color: '#ffffff',
     });
 
-    // レベル
-    const levelText = this.add.text(-100, -80, `Lv. ${this.playerData.level}`, {
+    const levelText = this.add.text(-100, -80, `Lv. ${playerData.level}`, {
       fontFamily: 'Arial',
       fontSize: '18px',
       color: '#ffffff',
     });
 
-    // 経験値
-    const expText = this.add.text(
-      -100,
-      -50,
-      `EXP: ${this.playerData.exp}/${this.playerData.maxExp}`,
-      {
-        fontFamily: 'Arial',
-        fontSize: '16px',
-        color: '#cccccc',
-      }
-    );
-
-    // ステータス
-    const stats = [
-      { name: 'HP', value: `${this.playerData.health}/${this.playerData.maxHealth}` },
-      { name: '攻撃力', value: this.playerData.attack.toString() },
-      { name: '防御力', value: this.playerData.defense.toString() },
-      { name: '素早さ', value: this.playerData.speed.toString() },
-      { name: '所持金', value: `${this.playerData.gold} G` },
-    ];
-
-    const statTexts = stats.map((stat, index) => {
-      return this.add.text(-100, -10 + index * 30, `${stat.name}: ${stat.value}`, {
-        fontFamily: 'Arial',
-        fontSize: '16px',
-        color: '#ffffff',
-      });
+    // 簡略化のために最小限のステータスだけ表示
+    const hpText = this.add.text(-100, -40, `HP: ${playerData.health}/${playerData.maxHealth}`, {
+      fontFamily: 'Arial',
+      fontSize: '16px',
+      color: '#ffffff',
     });
 
-    this.playerStatusPanel.add([background, nameText, levelText, expText, ...statTexts]);
+    this.playerStatusPanel.add([background, nameText, levelText, hpText]);
   }
 
   private addAnimations(): void {
@@ -257,11 +239,7 @@ export class MenuScene extends Phaser.Scene {
 
   // ステージ選択メニューを開く
   private openStageSelect(): void {
-    console.warn('Opening stage select menu, subMenuActive state:', this.subMenuActive);
-    if (this.subMenuActive) {
-      console.warn('Sub menu already active, not opening new one');
-      return;
-    }
+    if (this.subMenuActive) return;
     this.subMenuActive = true;
 
     // 既存のメインメニューを一時的に隠す
@@ -298,7 +276,6 @@ export class MenuScene extends Phaser.Scene {
     const backButton = this.createMenuButton('戻る', 0, stages.length * 70 + 20);
     const backBg = backButton.getAt(0) as Phaser.GameObjects.Rectangle;
     backBg.on('pointerdown', () => {
-      console.warn('Back button clicked');
       this.closeSubMenu(stageSelectContainer);
     });
 
@@ -314,7 +291,6 @@ export class MenuScene extends Phaser.Scene {
   }
 
   // ステージボタンの作成
-  // Fixed 'any' type with a more specific type
   private createStageButton(
     stage: { id: string; name: string; level: number; unlocked: boolean },
     x: number,
@@ -369,309 +345,6 @@ export class MenuScene extends Phaser.Scene {
     this.scene.start('BattleScene', { stageId });
   }
 
-  // アイテムメニューを開く
-  private openItemMenu(): void {
-    console.warn('Opening item menu, subMenuActive state:', this.subMenuActive);
-    if (this.subMenuActive) {
-      console.warn('Sub menu already active, not opening new one');
-      return;
-    }
-    this.subMenuActive = true;
-
-    // メインメニューを隠す
-    this.tweens.add({
-      targets: this.menuContainer,
-      x: -200,
-      duration: 300,
-    });
-
-    // アイテムメニューコンテナ
-    const itemMenuContainer = this.add.container(800, 200);
-
-    // タイトル
-    const titleText = this.add.text(0, -40, 'アイテム', {
-      fontFamily: 'Arial',
-      fontSize: '24px',
-      color: '#ffffff',
-    });
-    titleText.setOrigin(0.5);
-
-    // アイテムリスト背景
-    const listBackground = this.add.rectangle(0, 100, 350, 300, 0x000000, 0.7);
-
-    // アイテムリスト
-    const itemListContainer = this.add.container(0, 0);
-
-    // アイテムがある場合は表示、ない場合はメッセージ
-    if (this.playerData.items.length > 0) {
-      this.playerData.items.forEach((item, index) => {
-        const itemButton = this.createItemButton(item, -150, index * 40);
-        itemListContainer.add(itemButton);
-      });
-    } else {
-      const emptyText = this.add.text(0, 100, 'アイテムがありません', {
-        fontFamily: 'Arial',
-        fontSize: '16px',
-        color: '#cccccc',
-      });
-      emptyText.setOrigin(0.5);
-      itemListContainer.add(emptyText);
-    }
-
-    // 戻るボタン
-    const backButton = this.createMenuButton('戻る', 0, 250);
-    const backBg = backButton.getAt(0) as Phaser.GameObjects.Rectangle;
-    backBg.on('pointerdown', () => {
-      console.warn('Back button clicked');
-      this.closeSubMenu(itemMenuContainer);
-    });
-
-    itemMenuContainer.add([titleText, listBackground, itemListContainer, backButton]);
-    this.currentSubMenu = itemMenuContainer;
-
-    // アニメーションでメニューを表示
-    this.tweens.add({
-      targets: itemMenuContainer,
-      x: 400,
-      duration: 300,
-    });
-  }
-
-  // アイテムボタンの作成
-  // Fixed 'any' type with a more specific type
-  private createItemButton(
-    item: { name: string; type: string; quantity: number },
-    x: number,
-    y: number
-  ): Phaser.GameObjects.Container {
-    const container = this.add.container(x, y);
-
-    // 背景
-    const background = this.add.rectangle(130, 0, 260, 30, 0x333333, 0.8);
-    background.setInteractive({ useHandCursor: true });
-
-    // アイテム名
-    const nameText = this.add.text(0, 0, item.name, {
-      fontFamily: 'Arial',
-      fontSize: '16px',
-      color: this.getItemTypeColor(item.type),
-    });
-
-    // 数量表示
-    const quantityText = this.add.text(250, 0, `x${item.quantity}`, {
-      fontFamily: 'Arial',
-      fontSize: '14px',
-      color: '#ffffff',
-    });
-    quantityText.setOrigin(1, 0.5);
-
-    container.add([background, nameText, quantityText]);
-
-    // クリックイベント（仮の実装）
-    background.on('pointerdown', () => {
-      console.warn(`アイテム「${item.name}」をクリックしました`);
-    });
-
-    return container;
-  }
-
-  // アイテムタイプに応じた色を取得
-  private getItemTypeColor(type: string): string {
-    switch (type) {
-      case 'consumable':
-        return '#66ff66'; // 緑
-      case 'equipment':
-        return '#6666ff'; // 青
-      case 'key':
-        return '#ffff66'; // 黄
-      default:
-        return '#ffffff'; // 白
-    }
-  }
-
-  // 装備メニューを開く
-  private openEquipmentMenu(): void {
-    console.warn('Opening equipment menu, subMenuActive state:', this.subMenuActive);
-    if (this.subMenuActive) {
-      console.warn('Sub menu already active, not opening new one');
-      return;
-    }
-    this.subMenuActive = true;
-
-    // メインメニューを隠す
-    this.tweens.add({
-      targets: this.menuContainer,
-      x: -200,
-      duration: 300,
-    });
-
-    // 装備メニューコンテナ
-    const equipMenuContainer = this.add.container(800, 200);
-
-    // タイトル
-    const titleText = this.add.text(0, -40, '装備', {
-      fontFamily: 'Arial',
-      fontSize: '24px',
-      color: '#ffffff',
-    });
-    titleText.setOrigin(0.5);
-
-    // 装備スロット
-    const equipSlots = [
-      { type: 'weapon', name: '武器', item: this.playerData.equipment.weapon },
-      { type: 'armor', name: '防具', item: this.playerData.equipment.armor },
-      { type: 'accessory', name: 'アクセサリー', item: this.playerData.equipment.accessory },
-    ];
-
-    const slotContainers = equipSlots.map((slot, index) => {
-      const slotContainer = this.add.container(0, index * 60);
-
-      // スロット名
-      const nameText = this.add.text(-150, 0, slot.name, {
-        fontFamily: 'Arial',
-        fontSize: '18px',
-        color: '#ffffff',
-      });
-
-      // 装備名
-      const itemName = slot.item ? slot.item.name : '装備なし';
-      const itemColor = slot.item ? '#6666ff' : '#999999';
-
-      const itemText = this.add.text(0, 0, itemName, {
-        fontFamily: 'Arial',
-        fontSize: '16px',
-        color: itemColor,
-      });
-
-      slotContainer.add([nameText, itemText]);
-      return slotContainer;
-    });
-
-    // 戻るボタン
-    const backButton = this.createMenuButton('戻る', 0, 200);
-    const backBg = backButton.getAt(0) as Phaser.GameObjects.Rectangle;
-    backBg.on('pointerdown', () => {
-      console.warn('Back button clicked');
-      this.closeSubMenu(equipMenuContainer);
-    });
-
-    equipMenuContainer.add([titleText, ...slotContainers, backButton]);
-    this.currentSubMenu = equipMenuContainer;
-
-    // アニメーションでメニューを表示
-    this.tweens.add({
-      targets: equipMenuContainer,
-      x: 400,
-      duration: 300,
-    });
-  }
-
-  // ステータス詳細メニューを開く
-  private openStatusMenu(): void {
-    console.warn('Opening status menu, subMenuActive state:', this.subMenuActive);
-    if (this.subMenuActive) {
-      console.warn('Sub menu already active, not opening new one');
-      return;
-    }
-    this.subMenuActive = true;
-
-    // メインメニューを隠す
-    this.tweens.add({
-      targets: this.menuContainer,
-      x: -200,
-      duration: 300,
-    });
-
-    // ステータスメニューコンテナ
-    const statusMenuContainer = this.add.container(800, 200);
-
-    // タイトル
-    const titleText = this.add.text(0, -40, 'ステータス詳細', {
-      fontFamily: 'Arial',
-      fontSize: '24px',
-      color: '#ffffff',
-    });
-    titleText.setOrigin(0.5);
-
-    // キャラクター名とレベル
-    const nameText = this.add.text(
-      -150,
-      20,
-      `${this.playerData.name} Lv.${this.playerData.level}`,
-      {
-        fontFamily: 'Arial',
-        fontSize: '20px',
-        color: '#ffffff',
-      }
-    );
-
-    // 経験値バー
-    const expBarBg = this.add.rectangle(0, 50, 300, 20, 0x333333);
-    const expRatio = this.playerData.exp / this.playerData.maxExp;
-    const expBar = this.add.rectangle(-150 + 150 * expRatio, 50, 300 * expRatio, 20, 0x00ff00);
-    expBar.setOrigin(0, 0.5);
-
-    const expText = this.add.text(0, 50, `${this.playerData.exp} / ${this.playerData.maxExp}`, {
-      fontFamily: 'Arial',
-      fontSize: '14px',
-      color: '#ffffff',
-    });
-    expText.setOrigin(0.5);
-
-    // 詳細ステータス
-    const stats = [
-      { name: 'HP', value: `${this.playerData.health} / ${this.playerData.maxHealth}` },
-      { name: '攻撃力', value: this.playerData.attack.toString() },
-      { name: '防御力', value: this.playerData.defense.toString() },
-      { name: '素早さ', value: this.playerData.speed.toString() },
-    ];
-
-    const statTexts = stats.map((stat, index) => {
-      const statContainer = this.add.container(-150, 90 + index * 30);
-
-      const nameText = this.add.text(0, 0, stat.name, {
-        fontFamily: 'Arial',
-        fontSize: '16px',
-        color: '#cccccc',
-      });
-
-      const valueText = this.add.text(100, 0, stat.value, {
-        fontFamily: 'Arial',
-        fontSize: '16px',
-        color: '#ffffff',
-      });
-
-      statContainer.add([nameText, valueText]);
-      return statContainer;
-    });
-
-    // 戻るボタン
-    const backButton = this.createMenuButton('戻る', 0, 250);
-    const backBg = backButton.getAt(0) as Phaser.GameObjects.Rectangle;
-    backBg.on('pointerdown', () => {
-      console.warn('Back button clicked');
-      this.closeSubMenu(statusMenuContainer);
-    });
-
-    statusMenuContainer.add([
-      titleText,
-      nameText,
-      expBarBg,
-      expBar,
-      expText,
-      ...statTexts,
-      backButton,
-    ]);
-    this.currentSubMenu = statusMenuContainer;
-
-    // アニメーションでメニューを表示
-    this.tweens.add({
-      targets: statusMenuContainer,
-      x: 400,
-      duration: 300,
-    });
-  }
-
   // サブメニューを閉じる
   private closeSubMenu(menu: Phaser.GameObjects.Container): void {
     this.tweens.add({
@@ -690,6 +363,94 @@ export class MenuScene extends Phaser.Scene {
           duration: 300,
         });
       },
+    });
+  }
+
+  // 以下はシンプルな実装として残し、将来拡張できるようにしておく
+  private openItemMenu(): void {
+    if (this.subMenuActive) return;
+    this.subMenuActive = true;
+    
+    // メインメニューを隠す
+    this.tweens.add({
+      targets: this.menuContainer,
+      x: -200,
+      duration: 300,
+    });
+    
+    // 簡易的なダイアログを表示
+    const dialogContainer = this.add.container(800, 200);
+    const background = this.add.rectangle(0, 0, 300, 200, 0x000000, 0.7);
+    const messageText = this.add.text(0, -30, "アイテム機能は開発中です", {
+      fontFamily: 'Arial',
+      fontSize: '18px',
+      color: '#ffffff',
+    });
+    messageText.setOrigin(0.5);
+    
+    // 戻るボタン
+    const backButton = this.createMenuButton('戻る', 0, 50);
+    const backBg = backButton.getAt(0) as Phaser.GameObjects.Rectangle;
+    backBg.on('pointerdown', () => {
+      this.closeSubMenu(dialogContainer);
+    });
+    
+    dialogContainer.add([background, messageText, backButton]);
+    this.currentSubMenu = dialogContainer;
+    
+    this.tweens.add({
+      targets: dialogContainer,
+      x: 400,
+      duration: 300,
+    });
+  }
+
+  private openEquipmentMenu(): void {
+    // アイテムメニューと同様に簡略化
+    this.openSimpleDialog("装備機能は開発中です");
+  }
+
+  private openStatusMenu(): void {
+    // ステータス詳細も簡略化
+    this.openSimpleDialog("詳細ステータス機能は開発中です");
+  }
+
+  // 簡易的なダイアログを表示する共通メソッド
+  private openSimpleDialog(message: string): void {
+    if (this.subMenuActive) return;
+    this.subMenuActive = true;
+    
+    // メインメニューを隠す
+    this.tweens.add({
+      targets: this.menuContainer,
+      x: -200,
+      duration: 300,
+    });
+    
+    const dialogContainer = this.add.container(800, 200);
+    const background = this.add.rectangle(0, 0, 300, 200, 0x000000, 0.7);
+    const messageText = this.add.text(0, -30, message, {
+      fontFamily: 'Arial',
+      fontSize: '18px',
+      color: '#ffffff',
+      align: 'center',
+    });
+    messageText.setOrigin(0.5);
+    
+    // 戻るボタン
+    const backButton = this.createMenuButton('戻る', 0, 50);
+    const backBg = backButton.getAt(0) as Phaser.GameObjects.Rectangle;
+    backBg.on('pointerdown', () => {
+      this.closeSubMenu(dialogContainer);
+    });
+    
+    dialogContainer.add([background, messageText, backButton]);
+    this.currentSubMenu = dialogContainer;
+    
+    this.tweens.add({
+      targets: dialogContainer,
+      x: 400,
+      duration: 300,
     });
   }
 }
