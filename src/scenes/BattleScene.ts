@@ -107,11 +107,21 @@ export class BattleScene extends Phaser.Scene {
 
   // ユニットのUI作成（プレイヤーと敵で共通）
   private createUnitUI(unit: Unit): void {
+    console.log(`Creating UI for ${unit.name}, isPlayer: ${unit.isPlayer}`);
+    
     // HPバー
     this.healthBars.set(unit, this.add.graphics());
 
     // スキルゲージ
     this.skillBars.set(unit, this.add.graphics());
+    
+    // 初回の描画
+    const healthBar = this.healthBars.get(unit);
+    const skillBar = this.skillBars.get(unit);
+    if (healthBar && skillBar) {
+      this.drawHealthBar(healthBar, unit, 20);
+      this.drawSkillBar(skillBar, unit, 40);
+    }
   }
 
   // 敵ユニットを追加するメソッド（ステージから呼び出される）
@@ -163,10 +173,16 @@ export class BattleScene extends Phaser.Scene {
 
     // HP値を表示
     if (!unit.hpText) {
-      unit.hpText = this.add.text(x, y - 15, '', { font: '12px Arial', color: '#ffffff' });
+      unit.hpText = this.add.text(x, y - 15, '', { 
+        font: '12px Arial', 
+        color: '#ffffff',
+        stroke: '#000000',
+        strokeThickness: 2
+      });
     }
     unit.hpText.setText(`${Math.floor(unit.health)}/${unit.maxHealth}`);
     unit.hpText.setPosition(x + width / 2 - unit.hpText.width / 2, y - 15);
+    unit.hpText.setDepth(1); // 前面に表示
   }
 
   private drawSkillBar(graphics: Phaser.GameObjects.Graphics, unit: Unit, yOffset: number): void {
@@ -241,16 +257,25 @@ export class BattleScene extends Phaser.Scene {
       );
     }
 
-    // ステージをクリーンアップ
-    if (this.currentStage) {
-      this.currentStage.cleanup();
-    }
-
+    // すべてのユニットをクリーンアップ
+    this.allUnits.forEach(unit => {
+      // Unit側のcleanupメソッドを呼び出す
+      unit.cleanup();
+    });
+    
     // UIのクリーンアップ
     this.healthBars.forEach((bar) => bar.destroy());
     this.skillBars.forEach((bar) => bar.destroy());
     this.healthBars.clear();
     this.skillBars.clear();
+    
+    // リストをクリア
+    this.allUnits = [];
+
+    // ステージをクリーンアップ
+    if (this.currentStage) {
+      this.currentStage.cleanup();
+    }
 
     // リザルト画面へ
     this.scene.start('ResultScene', { result: this.battleResult });
