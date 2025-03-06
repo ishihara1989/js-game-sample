@@ -207,7 +207,7 @@ export class Stage {
 
       // ユニットをリストに追加
       this.enemyUnits.push(enemyUnit);
-      
+
       // バトルシーンに敵ユニットを登録
       this.scene.addEnemyUnit(enemyUnit);
     });
@@ -219,7 +219,8 @@ export class Stage {
 
       // 敵もプレイヤーをターゲットに設定
       this.enemyUnits.forEach((enemy) => {
-        if (this.playerUnit) {  // nullチェックを追加
+        if (this.playerUnit) {
+          // nullチェックを追加
           enemy.setTarget(this.playerUnit);
         }
       });
@@ -364,7 +365,7 @@ export class Stage {
    * ステージの状態をクリーンアップ
    */
   cleanup(): void {
-    console.log("Cleaning up stage...");
+    console.log('Cleaning up stage...');
     // 敵ユニットの参照をクリア（実際のオブジェクト削除はBattleSceneで行う）
     this.enemyUnits = [];
     this.playerUnit = null;
