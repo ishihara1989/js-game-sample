@@ -38,7 +38,7 @@ export interface DropItem {
  */
 export class EnemyUnit extends Unit {
   // エネミーの基本情報
-  protected level: number;
+  protected level: number = 1;
   protected baseMaxHealth: number = 50;
   protected baseAttack: number = 8;
   protected baseDefense: number = 4;
@@ -48,28 +48,26 @@ export class EnemyUnit extends Unit {
   // ドロップアイテム
   protected possibleDrops: DropItem[] = [];
 
-  // グラフィックス要素
-  protected unitCircle: Phaser.GameObjects.Graphics;
-
   /**
    * コンストラクタ
    * @param config エネミー設定
    */
   constructor(config: EnemyUnitConfig) {
-    // 基本ステータスの初期化
-    this.initializeBaseStats();
+    // 初期値を計算
+    const calculatedStats = EnemyUnit.calculateStats(config.level, {
+      maxHealth: 50,
+      attack: 8,
+      defense: 4,
+      speed: 1.5,
+    });
 
-    // レベルに応じてステータスを計算
-    const { maxHealth, attack, defense, speed } =
-      config.customStats ||
-      EnemyUnit.calculateStats(config.level, {
-        maxHealth: this.baseMaxHealth,
-        attack: this.baseAttack,
-        defense: this.baseDefense,
-        speed: this.baseSpeed,
-      });
+    // 優先的にカスタムステータスを使用し、ない場合は計算済みのステータスを使用
+    const maxHealth = config.customStats?.maxHealth || calculatedStats.maxHealth;
+    const attack = config.customStats?.attack || calculatedStats.attack;
+    const defense = config.customStats?.defense || calculatedStats.defense;
+    const speed = config.customStats?.speed || calculatedStats.speed;
 
-    // Unitクラスのコンストラクタを呼び出し
+    // Unitのコンストラクタを最初に呼び出す
     super({
       scene: config.scene,
       x: config.x,
@@ -87,14 +85,14 @@ export class EnemyUnit extends Unit {
     // エネミー固有のプロパティを設定
     this.level = config.level;
 
+    // 基本ステータスの初期化（サブクラスでオーバーライド）
+    this.initializeBaseStats();
+
     // 経験値の初期化
     this.expValue = this.calculateExpValue();
 
     // ドロップアイテムの初期化
     this.initializeDrops();
-
-    // グラフィックス参照を取得
-    this.unitCircle = this.getAt(0) as Phaser.GameObjects.Graphics;
   }
 
   /**

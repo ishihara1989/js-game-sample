@@ -12,6 +12,7 @@ export class SlimeEnemy extends EnemyUnit {
   private readonly dashCooldownMax: number = 5000; // 5秒
   private isDashing: boolean = false;
   private originalSpeed: number = 0;
+  private speedMultiplier: number = 1.0; // 移動速度の倍率
 
   constructor(scene: BattleScene, x: number, y: number, level: number) {
     super({
@@ -122,8 +123,8 @@ export class SlimeEnemy extends EnemyUnit {
 
     this.isDashing = true;
 
-    // 移動速度を一時的に増加（3倍）
-    this.speed = this.originalSpeed * 3;
+    // 移動速度倍率を一時的に増加（3倍）
+    this.speedMultiplier = 3.0;
 
     // ターゲットに向かって直線的に移動するための目標設定
     this.movementTarget = new Phaser.Math.Vector2(this.target.x, this.target.y);
@@ -161,10 +162,40 @@ export class SlimeEnemy extends EnemyUnit {
     if (distanceToTarget < 30) {
       this.dashAttack(this.target);
       this.endDash();
+      return;
     }
 
-    // ダッシュ中の移動処理（基本的な移動と同じだが直接呼び出し）
-    this.updateMovement(delta);
+    // ダッシュ移動処理
+    if (this.movementTarget) {
+      const distance = Phaser.Math.Distance.Between(
+        this.x,
+        this.y,
+        this.movementTarget.x,
+        this.movementTarget.y
+      );
+
+      // 目標に到達したら移動終了
+      if (distance < 5) {
+        this.movementTarget = null;
+        this.endDash();
+        return;
+      }
+
+      // 移動方向を計算
+      const angle = Phaser.Math.Angle.Between(
+        this.x,
+        this.y,
+        this.movementTarget.x,
+        this.movementTarget.y
+      );
+
+      // 移動速度に基づいて位置を更新（speedMultiplierを使用）
+      this.x += Math.cos(angle) * this.speed * this.speedMultiplier;
+      this.y += Math.sin(angle) * this.speed * this.speedMultiplier;
+
+      // 向きを更新
+      this.updateDirection(angle);
+    }
   }
 
   /**
@@ -206,8 +237,8 @@ export class SlimeEnemy extends EnemyUnit {
   private endDash(): void {
     this.isDashing = false;
 
-    // 速度を元に戻す
-    this.speed = this.originalSpeed;
+    // 移動速度倍率を元に戻す
+    this.speedMultiplier = 1.0;
 
     // 色を元に戻す
     if (this.unitCircle) {
@@ -223,5 +254,50 @@ export class SlimeEnemy extends EnemyUnit {
 
     // 移動目標をクリア
     this.movementTarget = null;
+  }
+
+  /**
+   * 移動処理のオーバーライド
+   * 速度倍率を適用する
+   */
+  protected updateMovement(delta: number): void {
+    // 移動クールダウン中は移動しない
+    if (this.moveCooldown > 0) return;
+
+    // 移動目標があれば移動
+    if (this.movementTarget) {
+      const distance = Phaser.Math.Distance.Between(
+        this.x,
+        this.y,
+        this.movementTarget.x,
+        this.movementTarget.y
+      );
+
+      // 目標に到達したら移動終了
+      if (distance < 5) {
+        this.movementTarget = null;
+        return;
+      }
+
+      // 移動方向を計算
+      const angle = Phaser.Math.Angle.Between(
+        this.x,
+        this.y,
+        this.movementTarget.x,
+        this.movementTarget.y
+      );
+
+      // 移動速度に基づいて位置を更新（speedMultiplierを適用）
+      this.x += Math.cos(angle) * this.speed * this.speedMultiplier;
+      this.y += Math.sin(angle) * this.speed * this.speedMultiplier;
+
+      // 向きを更新
+      this.updateDirection(angle);
+    } else if (this.target) {
+      // ターゲットがnullでないことを確認
+      // ターゲットの方向を向く
+      const angle = Phaser.Math.Angle.Between(this.x, this.y, this.target.x, this.target.y);
+      this.updateDirection(angle);
+    }
   }
 }

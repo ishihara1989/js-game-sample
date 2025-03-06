@@ -28,9 +28,9 @@ export class Unit extends Phaser.GameObjects.Container {
   health: number;
   skillCooldown: number = 0;
   readonly skillMaxCooldown: number = 100;
-  private attackCooldown: number = 0;
+  protected attackCooldown: number = 0; // privateからprotectedに変更
   readonly attackCooldownMax: number = 1500; // ミリ秒
-  private moveCooldown: number = 0;
+  protected moveCooldown: number = 0; // privateからprotectedに変更
   readonly moveCooldownMax: number = 500; // ミリ秒
 
   // 戦闘報酬関連
@@ -41,8 +41,8 @@ export class Unit extends Phaser.GameObjects.Container {
   protected battleScene: BattleScene; // privateからprotectedに変更
 
   // 見た目関連
-  private unitCircle: Phaser.GameObjects.Graphics;
-  private directionIndicator: Phaser.GameObjects.Graphics;
+  protected unitCircle: Phaser.GameObjects.Graphics; // privateからprotectedに変更
+  protected directionIndicator: Phaser.GameObjects.Graphics; // privateからprotectedに変更
   hpText?: Phaser.GameObjects.Text;
   nameText: Phaser.GameObjects.Text;
 
@@ -117,7 +117,8 @@ export class Unit extends Phaser.GameObjects.Container {
     this.nameText.setPosition(this.x, this.y - 60);
   }
 
-  private updateCooldowns(delta: number): void {
+  protected updateCooldowns(delta: number): void {
+    // privateからprotectedに変更
     // 攻撃クールダウン
     if (this.attackCooldown > 0) {
       this.attackCooldown -= delta;
