@@ -41,7 +41,7 @@ export class Unit extends Phaser.GameObjects.Container {
   private unitCircle: Phaser.GameObjects.Graphics;
   private directionIndicator: Phaser.GameObjects.Graphics;
   hpText?: Phaser.GameObjects.Text;
-  private nameText: Phaser.GameObjects.Text;
+  nameText: Phaser.GameObjects.Text; // privateから変更して外部からアクセス可能に
 
   // 移動関連
   private movementTarget: Phaser.Math.Vector2 | null = null;
@@ -73,8 +73,8 @@ export class Unit extends Phaser.GameObjects.Container {
     this.directionIndicator.fillStyle(0xffffff, 1);
     this.directionIndicator.fillTriangle(0, -30, -10, -15, 10, -15);
 
-    // ユニット名（コンテナに追加）
-    this.nameText = this.scene.add.text(0, -45, this.name, {
+    // シーンに直接名前を表示（コンテナ外）
+    this.nameText = this.scene.add.text(this.x, this.y - 60, this.name, {
       font: '14px Arial',
       color: '#ffffff',
       stroke: '#000000',
@@ -82,11 +82,14 @@ export class Unit extends Phaser.GameObjects.Container {
     });
     this.nameText.setOrigin(0.5);
 
-    // コンテナに追加
-    this.add([this.unitCircle, this.directionIndicator, this.nameText]);
+    // コンテナには円とインディケーターだけ追加
+    this.add([this.unitCircle, this.directionIndicator]);
 
     // シーンに追加
     this.scene.add.existing(this);
+    
+    // 名前が見えることを確認
+    console.log(`Created unit ${this.name} at ${this.x},${this.y}. isPlayer: ${this.isPlayer}`);
   }
 
   update(delta: number): void {
@@ -101,6 +104,9 @@ export class Unit extends Phaser.GameObjects.Container {
 
     // AI行動
     this.updateAI(delta);
+    
+    // 名前テキストの位置更新
+    this.nameText.setPosition(this.x, this.y - 60);
   }
 
   private updateCooldowns(delta: number): void {
@@ -331,5 +337,21 @@ export class Unit extends Phaser.GameObjects.Container {
   // ターゲットを設定
   setTarget(unit: Unit): void {
     this.target = unit;
+  }
+
+  // ユニットのクリーンアップ
+  cleanup(): void {
+    // 名前テキストを削除
+    if (this.nameText) {
+      this.nameText.destroy();
+    }
+    
+    // HPテキストを削除
+    if (this.hpText) {
+      this.hpText.destroy();
+    }
+    
+    // コンテナを削除
+    this.destroy();
   }
 }
