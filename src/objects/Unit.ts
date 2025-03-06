@@ -73,10 +73,12 @@ export class Unit extends Phaser.GameObjects.Container {
     this.directionIndicator.fillStyle(0xffffff, 1);
     this.directionIndicator.fillTriangle(0, -30, -10, -15, 10, -15);
 
-    // ユニット名
+    // ユニット名（コンテナに追加）
     this.nameText = this.scene.add.text(0, -45, this.name, {
       font: '14px Arial',
       color: '#ffffff',
+      stroke: '#000000',
+      strokeThickness: 3
     });
     this.nameText.setOrigin(0.5);
 
