@@ -1,5 +1,4 @@
 // eslint.config.js
-const eslint = require('eslint');
 const tseslint = require('@typescript-eslint/eslint-plugin');
 const tsparser = require('@typescript-eslint/parser');
 const prettierConfig = require('eslint-config-prettier');
@@ -18,9 +17,16 @@ module.exports = [
         sourceType: 'module',
         project: './tsconfig.json'
       },
+      // 環境設定を直接指定する
       globals: {
-        ...eslint.environments.browser,
-        ...eslint.environments.es2021
+        // ブラウザのグローバル変数
+        window: 'readonly',
+        document: 'readonly',
+        navigator: 'readonly',
+        // ES2021のグローバル変数
+        Promise: 'readonly',
+        Map: 'readonly',
+        Set: 'readonly'
       },
     },
     plugins: {
@@ -33,6 +39,15 @@ module.exports = [
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
       'no-console': ['warn', { allow: ['warn', 'error'] }]
+    },
+    // ESLint v9の環境設定方法
+    linterOptions: {
+      reportUnusedDisableDirectives: true,
+    },
+    // 環境設定
+    env: {
+      browser: true,
+      es2021: true
     }
   },
   prettierConfig
