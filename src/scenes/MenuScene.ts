@@ -19,6 +19,13 @@ export class MenuScene extends Phaser.Scene {
     this.playerData = DEFAULT_PLAYER_DATA;
   }
 
+  init(): void {
+    // シーン初期化時に状態をリセット
+    this.subMenuActive = false;
+    this.currentSubMenu = null;
+    console.log("MenuScene initialized, states reset");
+  }
+
   preload(): void {
     // プレイヤーデータのロード（将来的にはセーブデータから）
     // 現在はデフォルト値を使用
@@ -238,7 +245,7 @@ export class MenuScene extends Phaser.Scene {
   
   // ステージ選択メニューを開く
   private openStageSelect(): void {
-    console.log("Opening stage select menu");
+    console.log("Opening stage select menu, subMenuActive state:", this.subMenuActive);
     if (this.subMenuActive) {
       console.log("Sub menu already active, not opening new one");
       return;
@@ -348,7 +355,7 @@ export class MenuScene extends Phaser.Scene {
   
   // アイテムメニューを開く
   private openItemMenu(): void {
-    console.log("Opening item menu");
+    console.log("Opening item menu, subMenuActive state:", this.subMenuActive);
     if (this.subMenuActive) {
       console.log("Sub menu already active, not opening new one");
       return;
@@ -459,7 +466,7 @@ export class MenuScene extends Phaser.Scene {
   
   // 装備メニューを開く
   private openEquipmentMenu(): void {
-    console.log("Opening equipment menu");
+    console.log("Opening equipment menu, subMenuActive state:", this.subMenuActive);
     if (this.subMenuActive) {
       console.log("Sub menu already active, not opening new one");
       return;
@@ -536,7 +543,7 @@ export class MenuScene extends Phaser.Scene {
   
   // ステータス詳細メニューを開く
   private openStatusMenu(): void {
-    console.log("Opening status menu");
+    console.log("Opening status menu, subMenuActive state:", this.subMenuActive);
     if (this.subMenuActive) {
       console.log("Sub menu already active, not opening new one");
       return;
