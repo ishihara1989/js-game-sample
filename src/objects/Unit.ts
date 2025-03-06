@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { BattleScene } from '../scenes/BattleScene';
+import { Skill } from '../skills/Skill';
 
 interface UnitConfig {
   scene: BattleScene;
@@ -38,7 +39,7 @@ export class Unit extends Phaser.GameObjects.Container {
 
   // 参照
   protected target: Unit | null = null; // privateからprotectedに変更
-  protected battleScene: BattleScene; // privateからprotectedに変更
+  public battleScene: BattleScene; // protectedからpublicに変更（スキルから参照できるように）
 
   // 見た目関連
   protected unitCircle: Phaser.GameObjects.Graphics; // privateからprotectedに変更
@@ -50,6 +51,10 @@ export class Unit extends Phaser.GameObjects.Container {
   protected movementTarget: Phaser.Math.Vector2 | null = null; // privateからprotectedに変更
   protected wanderTimer: number = 0; // privateからprotectedに変更
   protected readonly wanderInterval: number = 3000; // 3秒ごとにランダム移動 // privateからprotectedに変更
+
+  // スキル関連
+  protected skills: Skill[] = []; // スキル配列
+  protected activeSkillIndex: number = 0; // 現在選択中のスキルインデックス
 
   constructor(config: UnitConfig) {
     super(config.scene, config.x, config.y);
@@ -136,6 +141,9 @@ export class Unit extends Phaser.GameObjects.Container {
         this.skillCooldown = this.skillMaxCooldown;
       }
     }
+
+    // 各スキルのクールダウン更新
+    this.skills.forEach((skill) => skill.update(delta));
   }
 
   protected updateMovement(delta: number): void {
@@ -213,24 +221,32 @@ export class Unit extends Phaser.GameObjects.Container {
       this.target.y
     );
 
-    // 攻撃範囲（近接攻撃なら100程度、遠距離なら300程度）
-    const attackRange = 150;
+    // 利用可能なスキルがあるか確認
+    const availableSkill = this.getReadySkill();
 
-    if (distanceToTarget < attackRange) {
-      // 攻撃範囲内ならクールダウン次第で攻撃
-      if (this.attackCooldown <= 0) {
-        // スキルが溜まっていればスキル使用、そうでなければ通常攻撃
-        if (this.skillCooldown >= this.skillMaxCooldown) {
-          this.useSkill();
-        } else {
-          this.performAttack(this.target);
+    if (availableSkill) {
+      // スキルの射程範囲内かどうか確認
+      if (distanceToTarget <= availableSkill.range) {
+        // スキルを使用
+        this.useSkillOnTarget(this.target);
+      } else {
+        // 射程外ならターゲットに接近
+        if (!this.movementTarget && this.moveCooldown <= 0) {
+          this.moveToRandomPositionNearTarget();
         }
       }
     } else {
-      // 攻撃範囲外ならターゲットに接近
-      if (!this.movementTarget && this.moveCooldown <= 0) {
-        // ランダムな位置に移動（ターゲットの近く）
-        this.moveToRandomPositionNearTarget();
+      // スキルが使えない場合、攻撃距離内なら通常攻撃
+      const attackRange = 150; // 通常攻撃の射程
+      if (distanceToTarget < attackRange) {
+        if (this.attackCooldown <= 0) {
+          this.performAttack(this.target);
+        }
+      } else {
+        // 攻撃範囲外ならターゲットに接近
+        if (!this.movementTarget && this.moveCooldown <= 0) {
+          this.moveToRandomPositionNearTarget();
+        }
       }
     }
 
@@ -286,27 +302,94 @@ export class Unit extends Phaser.GameObjects.Container {
     console.log(`${this.name} attacks ${target.name} for ${damage} damage!`);
   }
 
-  // スキル使用
-  useSkill(): void {
-    if (!this.target) return;
-    if (this.skillCooldown < this.skillMaxCooldown) return;
+  // スキル関連メソッド
 
-    // スキルクールダウンをリセット
-    this.skillCooldown = 0;
-    this.attackCooldown = this.attackCooldownMax;
+  /**
+   * スキルを追加
+   * @param skill 追加するスキル
+   */
+  addSkill(skill: Skill): void {
+    skill.setOwner(this);
+    this.skills.push(skill);
+    console.log(`${this.name} learned skill: ${skill.name}`);
+  }
 
-    // スキルダメージ計算（通常攻撃の2倍）
-    const damage = Math.max(2, this.attackPower * 2 - this.target.defense);
+  /**
+   * スキルを取得
+   * @param skillId スキルID
+   * @returns 見つかったスキル、または undefined
+   */
+  getSkill(skillId: string): Skill | undefined {
+    return this.skills.find((skill) => skill.id === skillId);
+  }
 
-    // ターゲットにダメージを与える
-    this.target.takeDamage(damage);
-
-    // スキルエフェクトを表示
-    if (this.battleScene) {
-      this.battleScene.showSkillEffect(this, this.target);
+  /**
+   * 使用可能なスキルを取得
+   * @returns 使用可能なスキル、またはnull
+   */
+  getReadySkill(): Skill | null {
+    // 現在のアクティブスキルを最初にチェック
+    if (this.skills.length > 0 && this.activeSkillIndex < this.skills.length) {
+      const activeSkill = this.skills[this.activeSkillIndex];
+      if (activeSkill.isReady()) {
+        return activeSkill;
+      }
     }
 
-    console.log(`${this.name} uses skill on ${this.target.name} for ${damage} damage!`);
+    // 使用可能な他のスキルをチェック
+    for (const skill of this.skills) {
+      if (skill.isReady()) {
+        return skill;
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * ターゲットにスキルを使用
+   * @param target 対象ユニット
+   * @returns 成功したらtrue
+   */
+  useSkillOnTarget(target: Unit): boolean {
+    const readySkill = this.getReadySkill();
+    if (!readySkill) return false;
+
+    const success = readySkill.use(target);
+    if (success) {
+      // 攻撃クールダウンも一緒に設定（スキル使用後は一時的に行動不能に）
+      this.attackCooldown = this.attackCooldownMax / 2;
+    }
+
+    return success;
+  }
+
+  // 古いスキル使用メソッド（後方互換性のため残す）
+  useSkill(): void {
+    if (!this.target) return;
+
+    // 新しいスキルシステムを使用
+    const success = this.useSkillOnTarget(this.target);
+
+    // 新しいスキルシステムが失敗した場合は古い処理を行う
+    if (!success && this.skillCooldown >= this.skillMaxCooldown) {
+      // スキルクールダウンをリセット
+      this.skillCooldown = 0;
+      this.attackCooldown = this.attackCooldownMax;
+
+      // スキルダメージ計算（通常攻撃の2倍）
+      const damage = Math.max(2, this.attackPower * 2 - this.target.defense);
+
+      // ターゲットにダメージを与える
+      this.target.takeDamage(damage);
+
+      // スキルエフェクトを表示
+      if (this.battleScene) {
+        this.battleScene.showSkillEffect(this, this.target);
+      }
+
+      console.log(`${this.name} uses skill on ${this.target.name} for ${damage} damage!`);
+    }
   }
 
   // ダメージを受ける
