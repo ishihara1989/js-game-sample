@@ -44,10 +44,8 @@ export class Unit extends Phaser.GameObjects.Container {
   protected moveCooldown: number = 0; // privateからprotectedに変更
   readonly moveCooldownMax: number = 500; // ミリ秒
 
-  // レベルと経験値関連
+  // レベル関連（戦闘シーンでのみ使用する一時的なレベル。永続的なレベルはGameStateManagerで管理）
   protected level: number = 1;
-  protected experience: number = 0;
-  protected requiredExperience: number = 100; // レベル2になるための必要経験値
   // レベルごとに解放されるスキル定義
   protected skillUnlocks: SkillUnlock[] = [];
 
@@ -99,8 +97,7 @@ export class Unit extends Phaser.GameObjects.Container {
     this.unitCircle = this.scene.add.graphics();
     this.unitCircle.fillStyle(config.color, 1);
     this.unitCircle.fillCircle(0, 0, 20);
-    this.unitCircle.lineStyle(2, 0xffffff,
- 0.8);
+    this.unitCircle.lineStyle(2, 0xffffff, 0.8);
     this.unitCircle.strokeCircle(0, 0, 20);
 
     // 向きを示す三角形
@@ -492,27 +489,12 @@ export class Unit extends Phaser.GameObjects.Container {
   }
 
   /**
-   * 経験値を加算し、必要に応じてレベルアップを処理
-   * @param exp 獲得した経験値
-   * @returns レベルアップしたかどうか
+   * 経験値の表示だけを行うメソッド
+   * @param exp 表示する経験値
    */
-  addExperience(exp: number): boolean {
-    // 経験値を加算
-    this.experience += exp;
-
-    // 経験値獲得メッセージ
-    console.warn(`${this.name} gained ${exp} experience points.`);
-    
+  showExpGain(exp: number): void {
     // 獲得経験値を表示
     this.showExpText(exp);
-
-    // レベルアップのチェック
-    if (this.experience >= this.requiredExperience) {
-      this.levelUp();
-      return true;
-    }
-
-    return false;
   }
 
   /**
@@ -540,36 +522,14 @@ export class Unit extends Phaser.GameObjects.Container {
   }
 
   /**
-   * レベルアップ処理
+   * レベルアップエフェクトを表示（GameStateManagerで実際のレベルアップが行われた後に呼び出す）
    */
-  private levelUp(): void {
-    // レベルを上げる
-    this.level++;
-    
-    // 余った経験値を次のレベルに持ち越し
-    this.experience -= this.requiredExperience;
-    
-    // 次のレベルに必要な経験値を更新（レベルが上がるごとに必要経験値が増加）
-    this.requiredExperience = Math.floor(this.requiredExperience * 1.5);
-    
+  showLevelUpEffect(): void {
     // レベルテキストを更新
     if (this.levelText) {
       this.levelText.setText(`Lv.${this.level}`);
     }
-    
-    // レベルアップエフェクト表示
-    this.showLevelUpEffect();
-    
-    console.warn(`${this.name} leveled up to ${this.level}!`);
-    
-    // レベルアップによるスキル解放チェック
-    this.checkSkillUnlocks();
-  }
 
-  /**
-   * レベルアップエフェクトを表示
-   */
-  private showLevelUpEffect(): void {
     // レベルアップテキスト
     const levelUpText = this.scene.add.text(this.x, this.y - 70, 'LEVEL UP!', {
       font: 'bold 18px Arial',
@@ -611,33 +571,9 @@ export class Unit extends Phaser.GameObjects.Container {
   }
 
   /**
-   * レベルアップによるスキル解放をチェック
-   */
-  private checkSkillUnlocks(): void {
-    // 現在のレベルで解放されるスキルを検索
-    const newSkills = this.skillUnlocks.filter(unlock => unlock.level === this.level);
-    
-    if (newSkills.length > 0) {
-      // スキル解放の処理
-      newSkills.forEach(unlockInfo => {
-        // スキルを生成して追加
-        const newSkill = unlockInfo.skillFactory();
-        this.addSkill(newSkill);
-        
-        // 解放メッセージがあれば表示
-        if (unlockInfo.message) {
-          this.showSkillUnlockMessage(newSkill.name, unlockInfo.message);
-        } else {
-          this.showSkillUnlockMessage(newSkill.name);
-        }
-      });
-    }
-  }
-  
-  /**
    * スキル解放メッセージの表示
    */
-  private showSkillUnlockMessage(skillName: string, message?: string): void {
+  showSkillUnlockMessage(skillName: string, message?: string): void {
     // スキル解放メッセージの表示（コンソール）
     console.warn(`${this.name} unlocked new skill: ${skillName}`);
     
@@ -702,6 +638,21 @@ export class Unit extends Phaser.GameObjects.Container {
         this.addSkill(skill);
       });
     }
+  }
+
+  /**
+   * レベルを設定する（主に永続的なデータからの同期用）
+   * @param level 新しいレベル
+   */
+  setLevel(level: number): void {
+    if (level <= 0) return;
+    
+    this.level = level;
+    if (this.levelText) {
+      this.levelText.setText(`Lv.${this.level}`);
+    }
+    
+    console.warn(`Unit ${this.name} level set to ${level}`);
   }
 
   // ユニットのクリーンアップ
