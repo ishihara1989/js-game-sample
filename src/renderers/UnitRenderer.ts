@@ -9,10 +9,10 @@ import { Renderer } from './Renderer';
 export class UnitRenderer implements Renderer {
   // 参照するユニット
   protected unit: Unit;
-  
+
   // 所属するシーン
   protected scene: Phaser.Scene;
-  
+
   // 描画要素 - サブクラスからアクセスできるようprotectedに変更
   protected unitCircle: Phaser.GameObjects.Graphics;
   protected directionIndicator: Phaser.GameObjects.Graphics;
@@ -21,7 +21,7 @@ export class UnitRenderer implements Renderer {
   protected hpText: Phaser.GameObjects.Text;
   protected hpBar: Phaser.GameObjects.Graphics;
   protected skillBar: Phaser.GameObjects.Graphics;
-  
+
   // 色設定 - サブクラスからアクセスできるようprotectedに変更
   protected unitColor: number;
 
@@ -35,7 +35,7 @@ export class UnitRenderer implements Renderer {
     this.unit = unit;
     this.scene = scene;
     this.unitColor = color;
-    
+
     // グラフィックス要素を初期化
     this.unitCircle = this.scene.add.graphics();
     this.directionIndicator = this.scene.add.graphics();
@@ -44,7 +44,7 @@ export class UnitRenderer implements Renderer {
     this.hpText = this.scene.add.text(0, 0, '', {});
     this.hpBar = this.scene.add.graphics();
     this.skillBar = this.scene.add.graphics();
-    
+
     // 初期化処理
     this.initialize();
   }
@@ -55,7 +55,7 @@ export class UnitRenderer implements Renderer {
   initialize(): void {
     // ユニット本体の描画設定
     this.unitCircle.setDepth(5);
-    
+
     // 方向インディケータの描画設定
     this.directionIndicator.setDepth(5);
 
@@ -70,12 +70,17 @@ export class UnitRenderer implements Renderer {
     this.nameText.setDepth(10);
 
     // レベルテキストの設定
-    this.levelText = this.scene.add.text(this.unit.x, this.unit.y - 45, `Lv.${this.unit.getLevel()}`, {
-      font: '12px Arial',
-      color: '#ffff00',
-      stroke: '#000000',
-      strokeThickness: 2,
-    });
+    this.levelText = this.scene.add.text(
+      this.unit.x,
+      this.unit.y - 45,
+      `Lv.${this.unit.getLevel()}`,
+      {
+        font: '12px Arial',
+        color: '#ffff00',
+        stroke: '#000000',
+        strokeThickness: 2,
+      }
+    );
     this.levelText.setOrigin(0.5);
     this.levelText.setDepth(10);
 
@@ -96,7 +101,7 @@ export class UnitRenderer implements Renderer {
     // スキルゲージの設定
     this.skillBar = this.scene.add.graphics();
     this.skillBar.setDepth(10);
-    
+
     // 初回描画
     this.render();
   }
@@ -115,19 +120,19 @@ export class UnitRenderer implements Renderer {
   render(): void {
     // 位置の更新
     this.updatePosition();
-    
+
     // ユニット本体の描画
     this.drawUnit();
-    
+
     // 方向インディケータの描画
     this.drawDirectionIndicator();
-    
+
     // HPバーの描画
     this.drawHealthBar();
-    
+
     // スキルゲージの描画
     this.drawSkillBar();
-    
+
     // テキスト類の更新
     this.updateTexts();
   }
@@ -139,12 +144,12 @@ export class UnitRenderer implements Renderer {
     // グラフィックスの削除
     this.unitCircle.destroy();
     this.directionIndicator.destroy();
-    
+
     // テキストの削除
     this.nameText.destroy();
     this.levelText.destroy();
     this.hpText.destroy();
-    
+
     // バーの削除
     this.hpBar.destroy();
     this.skillBar.destroy();
@@ -153,7 +158,8 @@ export class UnitRenderer implements Renderer {
   /**
    * 位置の更新
    */
-  protected updatePosition(): void {  // privateからprotectedに変更
+  protected updatePosition(): void {
+    // privateからprotectedに変更
     // テキスト類の位置更新
     this.nameText.setPosition(this.unit.x, this.unit.y - 60);
     this.levelText.setPosition(this.unit.x, this.unit.y - 45);
@@ -162,7 +168,8 @@ export class UnitRenderer implements Renderer {
   /**
    * ユニット本体の描画
    */
-  protected drawUnit(): void {  // privateからprotectedに変更
+  protected drawUnit(): void {
+    // privateからprotectedに変更
     this.unitCircle.clear();
     this.unitCircle.fillStyle(this.unitColor, 1);
     this.unitCircle.fillCircle(this.unit.x, this.unit.y, 20);
@@ -173,7 +180,8 @@ export class UnitRenderer implements Renderer {
   /**
    * 方向インディケータの描画
    */
-  protected drawDirectionIndicator(): void {  // privateからprotectedに変更
+  protected drawDirectionIndicator(): void {
+    // privateからprotectedに変更
     // ユニットが向いている方向を示す三角形
     // ターゲットがいる場合はターゲットの方向を向く
     if (this.unit['target']) {
@@ -205,9 +213,10 @@ export class UnitRenderer implements Renderer {
   /**
    * HPバーの描画
    */
-  protected drawHealthBar(): void {  // privateからprotectedに変更
+  protected drawHealthBar(): void {
+    // privateからprotectedに変更
     this.hpBar.clear();
-    
+
     const x = this.unit.x - 40;
     const y = this.unit.y - 20;
     const width = 80;
@@ -226,7 +235,7 @@ export class UnitRenderer implements Renderer {
     // 枠線
     this.hpBar.lineStyle(1, 0xffffff, 0.8);
     this.hpBar.strokeRect(x, y, width, height);
-    
+
     // HP値テキストの更新
     this.hpText.setText(`${Math.floor(this.unit.health)}/${this.unit.maxHealth}`);
     this.hpText.setPosition(x + width / 2, y - 10);
@@ -235,9 +244,10 @@ export class UnitRenderer implements Renderer {
   /**
    * スキルゲージの描画
    */
-  protected drawSkillBar(): void {  // privateからprotectedに変更
+  protected drawSkillBar(): void {
+    // privateからprotectedに変更
     this.skillBar.clear();
-    
+
     const x = this.unit.x - 40;
     const y = this.unit.y - 5;
     const width = 80;
@@ -262,7 +272,8 @@ export class UnitRenderer implements Renderer {
    * @param percent HP率
    * @returns 色コード
    */
-  protected getHealthBarColor(percent: number): number {  // privateからprotectedに変更
+  protected getHealthBarColor(percent: number): number {
+    // privateからprotectedに変更
     if (percent > 0.6) return 0x00ff00; // 緑
     if (percent > 0.3) return 0xffff00; // 黄
     return 0xff0000; // 赤
@@ -271,7 +282,8 @@ export class UnitRenderer implements Renderer {
   /**
    * テキスト類の更新
    */
-  protected updateTexts(): void {  // privateからprotectedに変更
+  protected updateTexts(): void {
+    // privateからprotectedに変更
     // レベルテキスト更新
     this.levelText.setText(`Lv.${this.unit.getLevel()}`);
   }
@@ -281,10 +293,15 @@ export class UnitRenderer implements Renderer {
    * @param amount ダメージ量
    */
   showDamageText(amount: number): void {
-    const damageText = this.scene.add.text(this.unit.x, this.unit.y - 20, `-${Math.floor(amount)}`, {
-      font: 'bold 16px Arial',
-      color: '#ff0000',
-    });
+    const damageText = this.scene.add.text(
+      this.unit.x,
+      this.unit.y - 20,
+      `-${Math.floor(amount)}`,
+      {
+        font: 'bold 16px Arial',
+        color: '#ff0000',
+      }
+    );
     damageText.setOrigin(0.5);
     damageText.setDepth(15);
 
@@ -337,13 +354,13 @@ export class UnitRenderer implements Renderer {
     });
     levelUpText.setOrigin(0.5);
     levelUpText.setDepth(20);
-    
+
     // 輝くエフェクト（グラフィックス）
     const glowEffect = this.scene.add.graphics();
     glowEffect.fillStyle(0xffff00, 0.3);
     glowEffect.fillCircle(this.unit.x, this.unit.y, 50);
     glowEffect.setDepth(3);
-    
+
     // エフェクトアニメーション
     this.scene.tweens.add({
       targets: [glowEffect],
@@ -354,7 +371,7 @@ export class UnitRenderer implements Renderer {
         glowEffect.destroy();
       },
     });
-    
+
     // テキストアニメーション（上に移動しながらフェードアウト）
     this.scene.tweens.add({
       targets: levelUpText,
@@ -375,15 +392,20 @@ export class UnitRenderer implements Renderer {
    */
   showSkillUnlockMessage(skillName: string, message?: string): void {
     // スキル解放テキスト
-    const unlockText = this.scene.add.text(this.unit.x, this.unit.y - 90, `New Skill: ${skillName}!`, {
-      font: 'bold 16px Arial',
-      color: '#00ffff',
-      stroke: '#000000',
-      strokeThickness: 3,
-    });
+    const unlockText = this.scene.add.text(
+      this.unit.x,
+      this.unit.y - 90,
+      `New Skill: ${skillName}!`,
+      {
+        font: 'bold 16px Arial',
+        color: '#00ffff',
+        stroke: '#000000',
+        strokeThickness: 3,
+      }
+    );
     unlockText.setOrigin(0.5);
     unlockText.setDepth(20);
-    
+
     // 詳細メッセージ（指定があれば）
     if (message) {
       const detailText = this.scene.add.text(this.unit.x, this.unit.y - 70, message, {
@@ -394,7 +416,7 @@ export class UnitRenderer implements Renderer {
       });
       detailText.setOrigin(0.5);
       detailText.setDepth(20);
-      
+
       // 詳細メッセージのアニメーション
       this.scene.tweens.add({
         targets: detailText,
@@ -406,7 +428,7 @@ export class UnitRenderer implements Renderer {
         },
       });
     }
-    
+
     // テキストアニメーション
     this.scene.tweens.add({
       targets: unlockText,

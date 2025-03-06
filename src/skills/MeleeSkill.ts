@@ -1,3 +1,4 @@
+import Phaser from 'phaser';
 import { Unit } from '../objects/Unit';
 import { Skill, SkillConfig, SkillEffectType, SkillTargetType } from './Skill';
 
@@ -22,9 +23,9 @@ export class MeleeSkill extends Skill {
    */
   constructor(config: MeleeSkillConfig) {
     super(config);
-    
+
     this.knockback = config.knockback || 0;
-    
+
     // 近接スキルの場合、TargetTypeはSINGLEに強制
     if (this.targetType !== SkillTargetType.SINGLE) {
       console.warn(`MeleeSkill ${this.name} had incorrect targetType. Forcing to SINGLE.`);
@@ -41,50 +42,45 @@ export class MeleeSkill extends Skill {
 
     // ダメージ計算
     const damage = Math.max(1, this.power + this.owner.attackPower - target.defense / 2);
-    
+
     // ターゲットにダメージを与える
     target.takeDamage(damage);
-    
+
     // ノックバック効果（設定されている場合）
     if (this.knockback > 0) {
       this.applyKnockback(target);
     }
-    
+
     // エフェクト表示
     if (this.owner.battleScene) {
       // スキルエフェクトの表示
       this.owner.battleScene.showSkillEffect(this.owner, target);
     }
-    
+
     console.warn(`${this.owner.name} uses ${this.name} on ${target.name} for ${damage} damage!`);
-    
+
     return true;
   }
-  
+
   /**
    * ノックバック効果の適用
    * @param target ノックバック対象
    */
   private applyKnockback(target: Unit): void {
     if (!this.owner) return;
-    
+
     // ノックバックの方向を計算
-    const angle = Phaser.Math.Angle.Between(
-      this.owner.x, 
-      this.owner.y, 
-      target.x, 
-      target.y
-    );
-    
+    const angle = Phaser.Math.Angle.Between(this.owner.x, this.owner.y, target.x, target.y);
+
     // ノックバック距離に応じた新しい位置を計算
     const newX = target.x + Math.cos(angle) * this.knockback;
     const newY = target.y + Math.sin(angle) * this.knockback;
-    
+
     // 画面外に出ないように調整
     const bounds = 50;
     const clampedX = Phaser.Math.Clamp(newX, bounds, 800 - bounds);
     const clampedY = Phaser.Math.Clamp(newY, bounds, 600 - bounds);
-    
+
     // ターゲットをアニメーションでノックバック
     if (target.scene) {
       target.scene.tweens.add({
@@ -92,7 +88,7 @@ export class MeleeSkill extends Skill {
         x: clampedX,
         y: clampedY,
         duration: 300,
-        ease: 'Power2'
+        ease: 'Power2',
       });
     }
   }

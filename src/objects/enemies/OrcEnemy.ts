@@ -1,6 +1,6 @@
 import { BattleScene } from '../../scenes/BattleScene';
 import { EnemyUnit } from '../EnemyUnit';
-import { Unit } from '../Unit'; 
+import { Unit } from '../Unit';
 import { EnemyRenderer } from '../../renderers/EnemyRenderer';
 
 /**
@@ -11,7 +11,7 @@ export class OrcEnemy extends EnemyUnit {
   private enrageThreshold: number = 0.3; // 30%以下のHPでエンレイジする
   private enraged: boolean = false;
   private originalAttackPower: number = 0;
-  
+
   // レンダラー参照を独自に保持（型を特定するため）
   private orcRenderer: EnemyRenderer | null = null;
 
@@ -28,7 +28,7 @@ export class OrcEnemy extends EnemyUnit {
 
     // 元の攻撃力を記録
     this.originalAttackPower = this.attackPower;
-    
+
     // レンダラーを取得して保持（レンダラーはUnit.tsのコンストラクタで作成される）
     if (this.renderer instanceof EnemyRenderer) {
       this.orcRenderer = this.renderer;

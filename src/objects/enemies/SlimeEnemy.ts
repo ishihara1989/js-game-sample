@@ -15,7 +15,7 @@ export class SlimeEnemy extends EnemyUnit {
   private isDashing: boolean = false;
   private originalSpeed: number = 0;
   private speedMultiplier: number = 1.0; // 移動速度の倍率
-  
+
   // レンダラー参照を独自に保持（型を特定するため）
   private slimeRenderer: EnemyRenderer | null = null;
 
@@ -32,7 +32,7 @@ export class SlimeEnemy extends EnemyUnit {
 
     // 元のスピードを記録
     this.originalSpeed = this.speed;
-    
+
     // レンダラーを取得して保持（レンダラーはUnit.tsのコンストラクタで作成される）
     if (this.renderer instanceof EnemyRenderer) {
       this.slimeRenderer = this.renderer;

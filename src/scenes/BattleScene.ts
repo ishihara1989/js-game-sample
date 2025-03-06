@@ -15,7 +15,7 @@ export class BattleScene extends Phaser.Scene {
   // バトル状態管理
   public battleActive: boolean = false;
   public battleResult: BattleResult | null = null;
-  
+
   // バトル時間
   public battleTime: number = 0;
 
@@ -57,13 +57,13 @@ export class BattleScene extends Phaser.Scene {
     this.healthBars.clear();
     this.skillBars.clear();
     this.expBar = null;
-    
+
     // レンダラーを初期化
     if (this.uiRenderer) {
       this.uiRenderer.destroy();
       this.uiRenderer = null;
     }
-    
+
     if (this.effectRenderer) {
       this.effectRenderer.destroy();
       this.effectRenderer = null;
@@ -74,11 +74,11 @@ export class BattleScene extends Phaser.Scene {
     // レンダラーの作成
     this.uiRenderer = new BattleUIRenderer(this);
     this.effectRenderer = new EffectRenderer(this);
-    
+
     // レンダラーの初期化
     this.uiRenderer.initialize();
     this.effectRenderer.initialize();
-    
+
     // デバッグテキスト（最初に作成）
     this.debugText = this.add.text(10, 10, 'Battle Starting...', {
       font: '16px Arial',
@@ -109,7 +109,7 @@ export class BattleScene extends Phaser.Scene {
 
     // プレイヤーユニットのUI作成
     this.createUnitUI(this.playerUnit);
-    
+
     // 経験値バーの作成
     this.createExpBar();
 
@@ -119,13 +119,13 @@ export class BattleScene extends Phaser.Scene {
 
     // バトル開始
     this.startBattle();
-    
+
     // 定期的なユニットチェック
     this.time.addEvent({
       delay: 500, // 500ミリ秒ごとに実行
       callback: this.checkUnits,
       callbackScope: this,
-      loop: true
+      loop: true,
     });
   }
 
@@ -149,13 +149,13 @@ export class BattleScene extends Phaser.Scene {
 
     // UIの更新
     this.updateAllUI();
-    
+
     // レンダラーの更新
     if (this.uiRenderer) {
       this.uiRenderer.update(delta);
       this.uiRenderer.render();
     }
-    
+
     if (this.effectRenderer) {
       this.effectRenderer.update(delta);
       this.effectRenderer.render();
@@ -164,65 +164,65 @@ export class BattleScene extends Phaser.Scene {
     // デバッグ情報の更新
     this.updateDebugText();
   }
-  
+
   /**
    * ユニット状態のチェック（敵の死亡判定など）
    */
   private checkUnits(): void {
     if (!this.battleActive) return;
-    
+
     const deadEnemies: Unit[] = [];
-    
+
     // HPが0になった敵を検出
-    this.allUnits.forEach(unit => {
+    this.allUnits.forEach((unit) => {
       if (unit !== this.playerUnit && unit.health <= 0) {
         deadEnemies.push(unit);
       }
     });
-    
+
     // 敵の処理
-    deadEnemies.forEach(enemy => {
+    deadEnemies.forEach((enemy) => {
       // 経験値の獲得
       const expValue = enemy.getExpValue();
       const leveledUp = this.playerUnit.addExperience(expValue);
-      
+
       if (leveledUp) {
         // レベルアップ効果など、必要に応じて処理を追加
         console.warn(`Player leveled up! New abilities unlocked.`);
       }
-      
+
       // ユニットリストから削除
-      this.allUnits = this.allUnits.filter(unit => unit !== enemy);
-      
+      this.allUnits = this.allUnits.filter((unit) => unit !== enemy);
+
       // UI要素を削除
       const healthBar = this.healthBars.get(enemy);
       if (healthBar) {
         healthBar.destroy();
         this.healthBars.delete(enemy);
       }
-      
+
       const skillBar = this.skillBars.get(enemy);
       if (skillBar) {
         skillBar.destroy();
         this.skillBars.delete(enemy);
       }
-      
+
       // ユニットのクリーンアップ
       enemy.cleanup();
     });
-    
+
     // 経験値バーの更新
     this.updateExpBar();
-    
+
     // プレイヤーの死亡チェック
     if (this.playerUnit.health <= 0) {
       // 敗北
-      this.endBattle({ 
-        victory: false, 
+      this.endBattle({
+        victory: false,
         stageId: this.stageId,
         enemiesDefeated: 0,
         experienceGained: 0,
-        itemsDropped: []
+        itemsDropped: [],
       });
     }
   }
@@ -242,14 +242,14 @@ export class BattleScene extends Phaser.Scene {
       {
         level: 2,
         skillFactory: createBasicRangeSkill,
-        message: "遠距離からの攻撃が可能になった!"
+        message: '遠距離からの攻撃が可能になった!',
       },
       // レベル3 - 範囲攻撃
       {
         level: 3,
         skillFactory: createBasicAreaSkill,
-        message: "複数の敵を同時に攻撃できるようになった!"
-      }
+        message: '複数の敵を同時に攻撃できるようになった!',
+      },
     ]);
 
     console.warn('Player skills setup completed');
@@ -277,7 +277,7 @@ export class BattleScene extends Phaser.Scene {
       this.drawSkillBar(skillBar, unit, 40);
     }
   }
-  
+
   /**
    * 経験値バーの作成
    */
@@ -285,45 +285,45 @@ export class BattleScene extends Phaser.Scene {
     // 経験値バーのグラフィック
     this.expBar = this.add.graphics();
     this.expBar.setDepth(10);
-    
+
     // 初回描画
     this.updateExpBar();
   }
-  
+
   /**
    * 経験値バーの更新
    */
   private updateExpBar(): void {
     if (!this.expBar || !this.playerUnit) return;
-    
+
     this.expBar.clear();
-    
+
     // 画面下部に経験値バーを配置
     const barWidth = 400;
     const barHeight = 15;
-    const x = this.sys.game.config.width as number / 2 - barWidth / 2;
+    const x = (this.sys.game.config.width as number) / 2 - barWidth / 2;
     const y = (this.sys.game.config.height as number) - 30;
-    
+
     // 背景（黒）
     this.expBar.fillStyle(0x000000, 0.7);
     this.expBar.fillRect(x, y, barWidth, barHeight);
-    
+
     // テキスト表示用に現在の経験値情報を取得
     // 注意: これらのプロパティはprivateなので、本来はUnitクラスにgetterメソッドを追加すべき
     // デモのため、as anyを使用してアクセス
     const currentExp = (this.playerUnit as any).experience || 0;
     const requiredExp = (this.playerUnit as any).requiredExperience || 100;
     const playerLevel = this.playerUnit.getLevel();
-    
+
     // 経験値バー（青緑）
     const expPercent = Math.min(1, currentExp / requiredExp);
     this.expBar.fillStyle(0x00aaff, 1);
     this.expBar.fillRect(x, y, barWidth * expPercent, barHeight);
-    
+
     // 枠線
     this.expBar.lineStyle(2, 0xffffff, 0.8);
     this.expBar.strokeRect(x, y, barWidth, barHeight);
-    
+
     // EXPテキスト
     let expText = this.children.getByName('exp_text') as Phaser.GameObjects.Text;
     if (!expText) {
@@ -331,13 +331,13 @@ export class BattleScene extends Phaser.Scene {
         font: '12px Arial',
         color: '#ffffff',
         stroke: '#000000',
-        strokeThickness: 2
+        strokeThickness: 2,
       });
       expText.setName('exp_text');
       expText.setOrigin(0.5, 0.5);
       expText.setDepth(11);
     }
-    
+
     expText.setText(`Level ${playerLevel} - EXP: ${currentExp}/${requiredExp}`);
   }
 
@@ -452,7 +452,7 @@ export class BattleScene extends Phaser.Scene {
     if (this.debugText) {
       this.debugText.setText('Battle Started');
     }
-    
+
     // バトル開始メッセージの表示
     if (this.uiRenderer) {
       this.uiRenderer.showBattleStartMessage();
@@ -490,25 +490,25 @@ export class BattleScene extends Phaser.Scene {
     this.skillBars.forEach((bar) => bar.destroy());
     this.healthBars.clear();
     this.skillBars.clear();
-    
+
     // 経験値バーのクリーンアップ
     if (this.expBar) {
       this.expBar.destroy();
       this.expBar = null;
     }
-    
+
     // 経験値テキストの削除
     const expText = this.children.getByName('exp_text');
     if (expText) {
       expText.destroy();
     }
-    
+
     // レンダラーのクリーンアップ
     if (this.uiRenderer) {
       this.uiRenderer.destroy();
       this.uiRenderer = null;
     }
-    
+
     if (this.effectRenderer) {
       this.effectRenderer.destroy();
       this.effectRenderer = null;
@@ -535,7 +535,7 @@ export class BattleScene extends Phaser.Scene {
       this.effectRenderer.showAttackEffect(attacker, target);
       return;
     }
-    
+
     // 後方互換性のための実装（effectRendererがない場合）
     const midX = (attacker.x + target.x) / 2;
     const midY = (attacker.y + target.y) / 2;
@@ -561,7 +561,7 @@ export class BattleScene extends Phaser.Scene {
       this.effectRenderer.showSkillEffect(caster, target);
       return;
     }
-    
+
     // 後方互換性のための実装（effectRendererがない場合）
     const startX = caster.x;
     const startY = caster.y;

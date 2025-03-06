@@ -9,16 +9,16 @@ import { Renderer } from './Renderer';
  */
 export class BattleUIRenderer implements Renderer {
   private scene: BattleScene;
-  
+
   // デバッグ情報
   private debugText: Phaser.GameObjects.Text;
-  
+
   // バトル情報
   private battleInfoText: Phaser.GameObjects.Text;
-  
+
   // 時間表示
   private timerText: Phaser.GameObjects.Text;
-  
+
   // ステージ情報
   private stageText: Phaser.GameObjects.Text;
 
@@ -28,14 +28,14 @@ export class BattleUIRenderer implements Renderer {
    */
   constructor(scene: BattleScene) {
     this.scene = scene;
-    
+
     // デバッグテキストの作成
     this.debugText = this.scene.add.text(10, 10, '', {
       font: '16px Arial',
       color: '#ffffff',
     });
     this.debugText.setDepth(100);
-    
+
     // バトル情報テキストの作成
     this.battleInfoText = this.scene.add.text(10, 50, '', {
       font: '14px Arial',
@@ -44,12 +44,12 @@ export class BattleUIRenderer implements Renderer {
       strokeThickness: 2,
     });
     this.battleInfoText.setDepth(100);
-    
+
     // 時間表示テキストの作成
     this.timerText = this.scene.add.text(
-      (this.scene.sys.game.config.width as number) - 10, 
-      10, 
-      '', 
+      (this.scene.sys.game.config.width as number) - 10,
+      10,
+      '',
       {
         font: '14px Arial',
         color: '#ffffff',
@@ -59,19 +59,14 @@ export class BattleUIRenderer implements Renderer {
     );
     this.timerText.setOrigin(1, 0);
     this.timerText.setDepth(100);
-    
+
     // ステージ情報テキストの作成
-    this.stageText = this.scene.add.text(
-      (this.scene.sys.game.config.width as number) / 2, 
-      10, 
-      '', 
-      {
-        font: '16px Arial',
-        color: '#ffff00',
-        stroke: '#000000',
-        strokeThickness: 3,
-      }
-    );
+    this.stageText = this.scene.add.text((this.scene.sys.game.config.width as number) / 2, 10, '', {
+      font: '16px Arial',
+      color: '#ffff00',
+      stroke: '#000000',
+      strokeThickness: 3,
+    });
     this.stageText.setOrigin(0.5, 0);
     this.stageText.setDepth(100);
   }
@@ -99,10 +94,10 @@ export class BattleUIRenderer implements Renderer {
   render(): void {
     // デバッグ情報の更新
     this.updateDebugText();
-    
+
     // バトル情報の更新
     this.updateBattleInfo();
-    
+
     // ステージ情報の更新
     this.updateStageText();
   }
@@ -117,7 +112,7 @@ export class BattleUIRenderer implements Renderer {
     this.timerText.destroy();
     this.stageText.destroy();
   }
-  
+
   /**
    * デバッグテキストの表示/非表示設定
    * @param visible 表示するかどうか
@@ -157,10 +152,10 @@ export class BattleUIRenderer implements Renderer {
     if (!this.scene.playerUnit) return;
 
     let infoText = '';
-    
+
     // バトルの状態（アクティブかどうか）
     infoText += `Status: ${this.scene.battleActive ? 'Battle in progress' : 'Battle ended'}\\n`;
-    
+
     // ユニット数
     const units = this.scene.getAllUnits();
     infoText += `Units: ${units.length} (Player: 1, Enemies: ${units.length - 1})\\n`;
@@ -178,7 +173,7 @@ export class BattleUIRenderer implements Renderer {
     const minutes = Math.floor(totalSeconds / 60);
     const seconds = Math.floor(totalSeconds % 60);
     const milliseconds = Math.floor((totalSeconds * 100) % 100);
-    
+
     const timeText = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${milliseconds.toString().padStart(2, '0')}`;
     this.timerText.setText(`Time: ${timeText}`);
   }
@@ -188,7 +183,7 @@ export class BattleUIRenderer implements Renderer {
    */
   private updateStageText(): void {
     if (!this.scene.currentStage) return;
-    
+
     this.stageText.setText(`Stage ${this.scene.currentStage.id}: ${this.scene.currentStage.name}`);
   }
 
@@ -209,7 +204,7 @@ export class BattleUIRenderer implements Renderer {
     );
     startText.setOrigin(0.5);
     startText.setDepth(200);
-    
+
     // テキストアニメーション
     this.scene.tweens.add({
       targets: startText,
@@ -241,7 +236,7 @@ export class BattleUIRenderer implements Renderer {
     );
     endText.setOrigin(0.5);
     endText.setDepth(200);
-    
+
     // テキストアニメーション
     this.scene.tweens.add({
       targets: endText,

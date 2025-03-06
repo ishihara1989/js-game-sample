@@ -9,10 +9,10 @@ import { EnemyRenderer } from './EnemyRenderer';
 export class SlimeRenderer extends EnemyRenderer {
   // 描画対象のスライムエネミー
   private slimeEnemy: SlimeEnemy;
-  
+
   // ダッシュ状態かどうか
   private isDashing: boolean = false;
-  
+
   // 通常色とダッシュ色
   protected normalColor: number = 0x00aaff; // 通常時の青色
   private dashingColor: number = 0x00ffff; // ダッシュ時の水色
@@ -25,7 +25,7 @@ export class SlimeRenderer extends EnemyRenderer {
   constructor(slime: SlimeEnemy, scene: Phaser.Scene) {
     // 親クラスのコンストラクタを呼び出し（通常色で初期化）
     super(slime, scene, 0x00aaff);
-    
+
     // スライムへの参照を保持
     this.slimeEnemy = slime;
   }
@@ -36,9 +36,9 @@ export class SlimeRenderer extends EnemyRenderer {
   setDashing(dashing: boolean): void {
     // 状態が変わらなければ何もしない
     if (this.isDashing === dashing) return;
-    
+
     this.isDashing = dashing;
-    
+
     if (dashing) {
       // ダッシュ開始時の視覚効果
       this.updateUnitColor(this.dashingColor);
@@ -58,7 +58,7 @@ export class SlimeRenderer extends EnemyRenderer {
       scaleX: 0.8,
       scaleY: 0.8,
       duration: 300,
-      yoyo: true
+      yoyo: true,
     });
   }
 
@@ -91,7 +91,7 @@ export class SlimeRenderer extends EnemyRenderer {
   render(): void {
     // 親クラスの描画処理を実行
     super.render();
-    
+
     // ダッシュ状態なら特殊効果を追加
     if (this.isDashing) {
       this.drawDashingEffect();

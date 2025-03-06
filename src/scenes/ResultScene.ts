@@ -111,9 +111,13 @@ export class ResultScene extends Phaser.Scene {
     } else {
       // 新しいリザルト表示スタイル
       if (this.result.victory) {
-        const stageInfo = this.result.stageId ? `Stage ${this.result.stageId} cleared!` : 'Stage cleared!';
-        const enemiesInfo = this.result.enemiesDefeated ? `Defeated ${this.result.enemiesDefeated} enemies.` : '';
-        
+        const stageInfo = this.result.stageId
+          ? `Stage ${this.result.stageId} cleared!`
+          : 'Stage cleared!';
+        const enemiesInfo = this.result.enemiesDefeated
+          ? `Defeated ${this.result.enemiesDefeated} enemies.`
+          : '';
+
         return `${stageInfo}\n${enemiesInfo}\n\nCongratulations!`;
       } else {
         return `You have been defeated...\n\nBetter luck next time!`;
@@ -141,7 +145,7 @@ export class ResultScene extends Phaser.Scene {
       this.result.items.forEach((item) => {
         text += `- ${item}\n`;
       });
-    } 
+    }
     // アイテム表示（新スタイル）
     else if (this.result.itemsDropped && this.result.itemsDropped.length > 0) {
       text += '\nItems:\n';

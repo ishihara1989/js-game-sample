@@ -1,6 +1,13 @@
 import { BattleScene } from '../scenes/BattleScene';
 import { Unit, SkillUnlock } from './Unit';
-import { createBasicMeleeSkill, createPowerMeleeSkill, createBasicRangeSkill, createPrecisionRangeSkill, createBasicAreaSkill, createLargeAreaSkill } from '../skills';
+import {
+  createBasicMeleeSkill,
+  createPowerMeleeSkill,
+  createBasicRangeSkill,
+  createPrecisionRangeSkill,
+  createBasicAreaSkill,
+  createLargeAreaSkill,
+} from '../skills';
 import { EnemyRenderer } from '../renderers/EnemyRenderer';
 
 /**
@@ -47,7 +54,7 @@ export class EnemyUnit extends Unit {
 
   // ドロップアイテム
   protected possibleDrops: DropItem[] = [];
-  
+
   // 敵用レンダラー
   protected enemyRenderer: EnemyRenderer | null = null;
 
@@ -99,7 +106,7 @@ export class EnemyUnit extends Unit {
 
     // ドロップアイテムの初期化
     this.initializeDrops();
-    
+
     // スキル解放設定
     this.setupEnemySkillUnlocks();
   }
@@ -159,34 +166,34 @@ export class EnemyUnit extends Unit {
       {
         level: 3,
         skillFactory: createBasicRangeSkill,
-        message: "遠距離攻撃を習得した!"
+        message: '遠距離攻撃を習得した!',
       },
       // レベル5 - 強力な近接攻撃
       {
         level: 5,
         skillFactory: createPowerMeleeSkill,
-        message: "強力な近接攻撃を習得した!"
+        message: '強力な近接攻撃を習得した!',
       },
       // レベル8 - 範囲攻撃
       {
         level: 8,
         skillFactory: createBasicAreaSkill,
-        message: "範囲攻撃を習得した!"
+        message: '範囲攻撃を習得した!',
       },
       // レベル10 - 精密射撃
       {
         level: 10,
         skillFactory: createPrecisionRangeSkill,
-        message: "精密射撃を習得した!"
+        message: '精密射撃を習得した!',
       },
       // レベル15 - 大規模範囲攻撃
       {
         level: 15,
         skillFactory: createLargeAreaSkill,
-        message: "大規模範囲攻撃を習得した!"
-      }
+        message: '大規模範囲攻撃を習得した!',
+      },
     ];
-    
+
     // スキル解放を設定
     this.setSkillUnlocks(skillUnlocks);
   }
@@ -213,7 +220,7 @@ export class EnemyUnit extends Unit {
       // 乱数を生成して確率と比較
       if (Math.random() <= item.dropRate) {
         drops.push(item.id);
-        
+
         // ドロップ時にレンダラーを使ってエフェクト表示
         if (this.enemyRenderer) {
           this.enemyRenderer.showItemDrop(item.id, item.name);
@@ -243,7 +250,7 @@ export class EnemyUnit extends Unit {
 
     // サブクラスでオーバーライドして拡張可能
   }
-  
+
   /**
    * ユニットのクリーンアップ（オーバーライド）
    * 死亡エフェクトを表示してから親クラスのクリーンアップを呼び出す
@@ -253,7 +260,7 @@ export class EnemyUnit extends Unit {
     if (this.enemyRenderer) {
       this.enemyRenderer.showDeathEffect();
     }
-    
+
     // 親クラスのクリーンアップを呼び出す
     super.cleanup();
   }

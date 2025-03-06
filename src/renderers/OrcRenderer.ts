@@ -9,10 +9,10 @@ import { EnemyRenderer } from './EnemyRenderer';
 export class OrcRenderer extends EnemyRenderer {
   // 描画対象のオークエネミー
   private orcEnemy: OrcEnemy;
-  
+
   // エンレイジ状態かどうか
   private enraged: boolean = false;
-  
+
   // エンレイジ色（継承元のnormalColorは使用）
   private enragedColor: number = 0x008800; // エンレイジ時の濃い緑色
 
@@ -24,7 +24,7 @@ export class OrcRenderer extends EnemyRenderer {
   constructor(orc: OrcEnemy, scene: Phaser.Scene) {
     // 親クラスのコンストラクタを呼び出し（通常色で初期化）
     super(orc, scene, 0x00aa00);
-    
+
     // オークへの参照を保持
     this.orcEnemy = orc;
   }
@@ -35,9 +35,9 @@ export class OrcRenderer extends EnemyRenderer {
   setEnraged(): void {
     // すでにエンレイジ状態なら何もしない
     if (this.enraged) return;
-    
+
     this.enraged = true;
-    
+
     // エンレイジ視覚効果（赤く点滅）
     this.scene.tweens.add({
       targets: this.unitCircle,
@@ -58,7 +58,7 @@ export class OrcRenderer extends EnemyRenderer {
   render(): void {
     // 親クラスの描画処理を実行
     super.render();
-    
+
     // エンレイジ状態なら特殊効果を追加
     if (this.enraged) {
       this.drawEnragedEffect();
@@ -71,7 +71,7 @@ export class OrcRenderer extends EnemyRenderer {
   protected drawUnit(): void {
     // 基本描画は親クラスの処理を利用
     super.drawUnit();
-    
+
     // エンレイジ状態では赤い輪郭を追加
     if (this.enraged) {
       this.unitCircle.lineStyle(2, 0xff0000, 0.8);

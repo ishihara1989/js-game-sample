@@ -22,9 +22,9 @@ interface UnitConfig {
  * レベルに応じたスキル解放定義
  */
 export interface SkillUnlock {
-  level: number;      // スキル解放レベル
+  level: number; // スキル解放レベル
   skillFactory: () => Skill; // スキル生成関数
-  message?: string;   // 解放時のメッセージ（省略可）
+  message?: string; // 解放時のメッセージ（省略可）
 }
 
 export class Unit extends Phaser.GameObjects.Container {
@@ -82,7 +82,7 @@ export class Unit extends Phaser.GameObjects.Container {
     this.defense = config.defense;
     this.speed = config.speed;
     this.battleScene = config.scene as BattleScene;
-    
+
     // レベルの設定（指定があれば使用）
     if (config.level) {
       this.level = config.level;
@@ -115,7 +115,7 @@ export class Unit extends Phaser.GameObjects.Container {
 
     // レンダラーの更新
     this.renderer.update(delta);
-    
+
     // レンダラーの描画
     this.renderer.render();
   }
@@ -400,7 +400,7 @@ export class Unit extends Phaser.GameObjects.Container {
 
     // 経験値獲得メッセージ
     console.warn(`${this.name} gained ${exp} experience points.`);
-    
+
     // レンダラーに経験値獲得テキストの表示を依頼
     this.renderer.showExpText(exp);
 
@@ -419,18 +419,18 @@ export class Unit extends Phaser.GameObjects.Container {
   private levelUp(): void {
     // レベルを上げる
     this.level++;
-    
+
     // 余った経験値を次のレベルに持ち越し
     this.experience -= this.requiredExperience;
-    
+
     // 次のレベルに必要な経験値を更新（レベルが上がるごとに必要経験値が増加）
     this.requiredExperience = Math.floor(this.requiredExperience * 1.5);
-    
+
     // レンダラーにレベルアップエフェクト表示を依頼
     this.renderer.showLevelUpEffect();
-    
+
     console.warn(`${this.name} leveled up to ${this.level}!`);
-    
+
     // レベルアップによるスキル解放チェック
     this.checkSkillUnlocks();
   }
@@ -440,15 +440,15 @@ export class Unit extends Phaser.GameObjects.Container {
    */
   private checkSkillUnlocks(): void {
     // 現在のレベルで解放されるスキルを検索
-    const newSkills = this.skillUnlocks.filter(unlock => unlock.level === this.level);
-    
+    const newSkills = this.skillUnlocks.filter((unlock) => unlock.level === this.level);
+
     if (newSkills.length > 0) {
       // スキル解放の処理
-      newSkills.forEach(unlockInfo => {
+      newSkills.forEach((unlockInfo) => {
         // スキルを生成して追加
         const newSkill = unlockInfo.skillFactory();
         this.addSkill(newSkill);
-        
+
         // レンダラーにスキル解放メッセージの表示を依頼
         if (unlockInfo.message) {
           this.renderer.showSkillUnlockMessage(newSkill.name, unlockInfo.message);
@@ -465,12 +465,12 @@ export class Unit extends Phaser.GameObjects.Container {
    */
   setSkillUnlocks(skillUnlocks: SkillUnlock[]): void {
     this.skillUnlocks = skillUnlocks;
-    
+
     // 既に到達しているレベルのスキルを解放（初期化時など）
-    const availableSkills = skillUnlocks.filter(unlock => unlock.level <= this.level);
-    
+    const availableSkills = skillUnlocks.filter((unlock) => unlock.level <= this.level);
+
     if (availableSkills.length > 0) {
-      availableSkills.forEach(unlockInfo => {
+      availableSkills.forEach((unlockInfo) => {
         const skill = unlockInfo.skillFactory();
         this.addSkill(skill);
       });
