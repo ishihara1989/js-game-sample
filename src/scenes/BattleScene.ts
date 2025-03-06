@@ -17,6 +17,8 @@ export class BattleScene extends Phaser.Scene {
   // UI要素
   private playerHealthBar!: Phaser.GameObjects.Graphics;
   private playerSkillBar!: Phaser.GameObjects.Graphics;
+  private enemyHealthBars: Map<Unit, Phaser.GameObjects.Graphics> = new Map();
+  private enemySkillBars: Map<Unit, Phaser.GameObjects.Graphics> = new Map();
 
   // デバッグテキスト
   private debugText!: Phaser.GameObjects.Text;
@@ -43,6 +45,8 @@ export class BattleScene extends Phaser.Scene {
     this.battleActive = false;
     this.battleResult = null;
     this.allUnits = [];
+    this.enemyHealthBars.clear();
+    this.enemySkillBars.clear();
   }
 
   create(): void {
@@ -103,8 +107,45 @@ export class BattleScene extends Phaser.Scene {
     // スキルゲージ
     this.playerSkillBar = this.add.graphics();
 
+    // 敵のUIも作成 (ステージから敵ユニットを取得)
+    if (this.currentStage) {
+      // 敵のUIを作成（敵ユニットが生成された後に呼び出す必要がある）
+      this.createEnemyUI();
+    }
+
     // 初期UI描画
     this.updateUI();
+  }
+
+  private createEnemyUI(): void {
+    if (!this.currentStage) return;
+    
+    // 敵リストを取得 (currentStageのenemyUnitsプロパティを公開する必要がある)
+    const enemyUnits = this.getEnemyUnits();
+    
+    enemyUnits.forEach(enemy => {
+      // 各敵ユニットのHPバーとスキルバーを作成
+      this.enemyHealthBars.set(enemy, this.add.graphics());
+      this.enemySkillBars.set(enemy, this.add.graphics());
+    });
+  }
+
+  // 敵ユニットを取得するメソッド（ステージからユニットリストを取得）
+  private getEnemyUnits(): Unit[] {
+    // 直接ステージから敵ユニットを取得する方法を実装
+    // 本来はステージクラスにゲッターを追加するべきだが、
+    // 一時的な解決策としてallUnitsから自分以外のユニットを返す
+    return this.allUnits.filter(unit => unit !== this.playerUnit);
+  }
+
+  // 敵ユニットを追加するメソッド（ステージから呼び出される）
+  addEnemyUnit(enemy: Unit): void {
+    // 敵ユニットを追加
+    this.allUnits.push(enemy);
+    
+    // 敵のUI要素も作成
+    this.enemyHealthBars.set(enemy, this.add.graphics());
+    this.enemySkillBars.set(enemy, this.add.graphics());
   }
 
   private updateUI(): void {
@@ -115,12 +156,26 @@ export class BattleScene extends Phaser.Scene {
     // HPバーのクリア
     this.playerHealthBar.clear();
     this.playerSkillBar.clear();
+    
+    // 敵のUIもクリア
+    this.enemyHealthBars.forEach(bar => bar.clear());
+    this.enemySkillBars.forEach(bar => bar.clear());
 
     // プレイヤーのHPバー描画
     this.drawHealthBar(this.playerHealthBar, this.playerUnit, 20);
 
     // スキルゲージ描画
     this.drawSkillBar(this.playerSkillBar, this.playerUnit, 40);
+    
+    // 敵のHPバー描画
+    this.enemyHealthBars.forEach((bar, enemy) => {
+      this.drawHealthBar(bar, enemy, 20);
+    });
+    
+    // 敵のスキルゲージ描画
+    this.enemySkillBars.forEach((bar, enemy) => {
+      this.drawSkillBar(bar, enemy, 40);
+    });
 
     // デバッグ情報の更新
     this.updateDebugText();
@@ -184,7 +239,12 @@ export class BattleScene extends Phaser.Scene {
     if (!this.debugText) return;
 
     let debugInfo = `Player: HP ${Math.floor(this.playerUnit.health)}/${this.playerUnit.maxHealth}, Skill: ${Math.floor(this.playerUnit.skillCooldown)}/${this.playerUnit.skillMaxCooldown}\n`;
-
+    
+    // 敵の情報も表示
+    this.getEnemyUnits().forEach((enemy, index) => {
+      debugInfo += `Enemy ${index + 1}: HP ${Math.floor(enemy.health)}/${enemy.maxHealth}\n`;
+    });
+    
     // ステージ情報の追加
     if (this.currentStage) {
       debugInfo += `Stage: ${this.currentStage.id} (${this.currentStage.name})\n`;
@@ -195,11 +255,11 @@ export class BattleScene extends Phaser.Scene {
 
   private startBattle(): void {
     this.battleActive = true;
-
+    
     if (this.currentStage) {
       this.currentStage.start();
     }
-
+    
     if (this.debugText) {
       this.debugText.setText('Battle Started');
     }
