@@ -4,6 +4,7 @@ import { BattleResult } from '../types/BattleTypes';
 import { Stage } from '../stages/Stage';
 import { StageFactory } from '../stages/StageFactory';
 import { StageStatus } from '../types/StageTypes';
+import { createBasicMeleeSkill, createBasicRangeSkill, createBasicAreaSkill } from '../skills';
 
 export class BattleScene extends Phaser.Scene {
   // ユニット関連
@@ -74,6 +75,9 @@ export class BattleScene extends Phaser.Scene {
     // プレイヤーユニットをリストに追加
     this.allUnits = [this.playerUnit];
 
+    // プレイヤーユニットに基本スキルを追加
+    this.setupPlayerSkills();
+
     // プレイヤーユニットのUI作成
     this.createUnitUI(this.playerUnit);
 
@@ -105,6 +109,25 @@ export class BattleScene extends Phaser.Scene {
 
     // デバッグ情報の更新
     this.updateDebugText();
+  }
+
+  // プレイヤーユニットに基本スキルを設定
+  private setupPlayerSkills(): void {
+    if (!this.playerUnit) return;
+    
+    // 基本近接攻撃スキルを追加
+    const meleeSkill = createBasicMeleeSkill();
+    this.playerUnit.addSkill(meleeSkill);
+    
+    // 基本遠距離攻撃スキルを追加
+    const rangeSkill = createBasicRangeSkill();
+    this.playerUnit.addSkill(rangeSkill);
+    
+    // 基本範囲攻撃スキルを追加
+    const areaSkill = createBasicAreaSkill();
+    this.playerUnit.addSkill(areaSkill);
+    
+    console.log('Player skills setup completed');
   }
 
   // ユニットのUI作成（プレイヤーと敵で共通）
