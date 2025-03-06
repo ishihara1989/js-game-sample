@@ -68,9 +68,9 @@ export const DEFAULT_PLAYER_DATA: PlayerData = {
       type: 'consumable',
       quantity: 3,
       effect: {
-        healHealth: 30
-      }
-    }
+        healHealth: 30,
+      },
+    },
   ],
   equipment: {
     weapon: {
@@ -78,17 +78,17 @@ export const DEFAULT_PLAYER_DATA: PlayerData = {
       name: '銅の剣',
       type: 'weapon',
       statBonus: {
-        attack: 3
-      }
+        attack: 3,
+      },
     },
     armor: {
       id: 'armor_leather',
       name: '革の鎧',
       type: 'armor',
       statBonus: {
-        defense: 2
-      }
+        defense: 2,
+      },
     },
-    accessory: undefined
-  }
+    accessory: undefined,
+  },
 };
