@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
-import { MainScene } from './scenes/MainScene';
+// Removing unused import
+// import { MainScene } from './scenes/MainScene';
 import { MenuScene } from './scenes/MenuScene';
 import { BattleScene } from './scenes/BattleScene';
 import { ResultScene } from './scenes/ResultScene';
@@ -21,6 +22,7 @@ const config: Phaser.Types.Core.GameConfig = {
 };
 
 window.addEventListener('load', () => {
-  // ゲームインスタンスの作成
-  const game = new Phaser.Game(config);
+  // Create game instance - using underscore prefix to indicate intentionally unused variable
+  // This suppresses the 'assigned but never used' warning
+  const _game = new Phaser.Game(config);
 });
