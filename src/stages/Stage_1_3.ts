@@ -1,6 +1,6 @@
 import { Stage } from './Stage';
 import { BattleScene } from '../scenes/BattleScene';
-import { StageConfig } from '../types/StageTypes';
+import { StageConfig, StageStatus } from '../types/StageTypes';
 import { Unit } from '../objects/Unit';
 
 /**
@@ -24,7 +24,7 @@ export class Stage_1_3 extends Stage {
         items: ['potion_medium', 'armor_goblin'],
       },
     };
-
+    
     super(scene, config);
   }
 
@@ -61,13 +61,13 @@ export class Stage_1_3 extends Stage {
   protected setupBackground(): void {
     // 基本的な背景
     super.setupBackground();
-
+    
     // 森の深部を表現
     // 木々を多く配置
     for (let i = 0; i < 15; i++) {
       const x = Phaser.Math.Between(50, 750);
       const y = Phaser.Math.Between(50, 550);
-
+      
       // 大きい木と小さい木をランダムに
       const size = Phaser.Math.Between(1, 2);
       if (size === 1) {
@@ -80,26 +80,26 @@ export class Stage_1_3 extends Stage {
         const treeTop = this.scene.add.circle(x, y - 40, 45, 0x003300, 0.8);
       }
     }
-
+    
     // 濃い霧のエフェクト
     const fogGraphics = this.scene.add.graphics();
     fogGraphics.fillStyle(0xffffff, 0.15);
-
+    
     for (let i = 0; i < 12; i++) {
       const x = Phaser.Math.Between(0, 800);
       const y = Phaser.Math.Between(0, 600);
       const radius = Phaser.Math.Between(80, 200);
-
+      
       fogGraphics.fillCircle(x, y, radius);
     }
-
+    
     // ボスモードでは特別な演出を追加
     if (this.bossMode) {
       // 不気味な赤い光
       const redLight = this.scene.add.graphics();
       redLight.fillStyle(0xff0000, 0.1);
       redLight.fillCircle(400, 300, 300);
-
+      
       // 不気味な効果音（将来的に実装）
     }
   }
@@ -110,11 +110,11 @@ export class Stage_1_3 extends Stage {
   protected createEnemyUnits(): void {
     // 通常の敵を作成
     super.createEnemyUnits();
-
+    
     // ボスモードの場合、最初の敵が全滅したらボスを出現させる
     if (this.bossMode) {
       // ボスのターン出現は update() で監視する
-      console.log('Boss mode activated for stage 1-3!');
+      console.log("Boss mode activated for stage 1-3!");
     }
   }
 
@@ -123,11 +123,11 @@ export class Stage_1_3 extends Stage {
    */
   private spawnBossUnit(): void {
     if (!this.scene || this.bossSpawned) return;
-
+    
     // 画面中央付近に出現させる演出
     const centerX = this.scene.cameras.main.width / 2;
     const centerY = this.scene.cameras.main.height / 2;
-
+    
     // 出現エフェクト
     const spawnEffect = this.scene.add.circle(centerX, centerY, 10, 0xff0000, 1);
     this.scene.tweens.add({
@@ -137,7 +137,7 @@ export class Stage_1_3 extends Stage {
       duration: 800,
       onComplete: () => {
         spawnEffect.destroy();
-
+        
         // ボスユニット作成
         this.bossUnit = new Unit({
           scene: this.scene,
@@ -152,21 +152,21 @@ export class Stage_1_3 extends Stage {
           isPlayer: false,
           color: 0xaa0000, // 赤みがかった色
         });
-
+        
         // プレイヤーとボスの関連付け
         if (this.playerUnit && this.bossUnit) {
           this.playerUnit.setTarget(this.bossUnit);
           this.bossUnit.setTarget(this.playerUnit);
         }
-
+        
         // 敵リストに追加
         this.enemyUnits.push(this.bossUnit);
-
+        
         // ボスの台詞（将来的にはテキストボックスで）
         const bossText = this.scene.add.text(
           centerX,
           centerY - 100,
-          '私の森に入ったことを後悔するがいい！',
+          "私の森に入ったことを後悔するがいい！",
           {
             fontFamily: 'Arial',
             fontSize: '18px',
@@ -176,19 +176,19 @@ export class Stage_1_3 extends Stage {
           }
         );
         bossText.setOrigin(0.5);
-
+        
         // 台詞を一定時間後に消す
         this.scene.time.delayedCall(2000, () => {
           this.scene.tweens.add({
             targets: bossText,
             alpha: 0,
             duration: 500,
-            onComplete: () => bossText.destroy(),
+            onComplete: () => bossText.destroy()
           });
         });
-      },
+      }
     });
-
+    
     this.bossSpawned = true;
   }
 
@@ -197,14 +197,14 @@ export class Stage_1_3 extends Stage {
    */
   update(delta: number): void {
     super.update(delta);
-
+    
     // ボスモードで、まだボスが出現しておらず、通常の敵が全滅している場合
     if (this.bossMode && !this.bossSpawned && this.status === StageStatus.IN_PROGRESS) {
-      const initialEnemiesDefeated = this.enemyUnits.every((unit) => unit.health <= 0);
-
+      const initialEnemiesDefeated = this.enemyUnits.every(unit => unit.health <= 0);
+      
       if (initialEnemiesDefeated) {
         // ボスユニットを出現させる
-        console.log('Spawning boss!');
+        console.log("Spawning boss!");
         this.spawnBossUnit();
       }
     }
@@ -219,23 +219,23 @@ export class Stage_1_3 extends Stage {
       this.config.rewards.exp = 200;
       this.config.rewards.gold = 150;
       this.config.rewards.items?.push('weapon_goblin_chief');
-
-      console.log('Boss defeated! Increased rewards!');
+      
+      console.log("Boss defeated! Increased rewards!");
     }
-
+    
     // 通常のクリア処理
     super.onStageCleared();
-
+    
     // 特別な演出（ボスを倒した場合）
     if (this.bossMode && this.bossSpawned) {
       const centerX = this.scene.cameras.main.width / 2;
       const centerY = this.scene.cameras.main.height / 2;
-
+      
       // 大きな勝利エフェクト
       for (let i = 0; i < 5; i++) {
         const delay = i * 200;
         const radius = 10 + i * 5;
-
+        
         this.scene.time.delayedCall(delay, () => {
           const victoryEffect = this.scene.add.circle(centerX, centerY, radius, 0xffff00, 1);
           this.scene.tweens.add({
@@ -245,7 +245,7 @@ export class Stage_1_3 extends Stage {
             duration: 800,
             onComplete: () => {
               victoryEffect.destroy();
-            },
+            }
           });
         });
       }
