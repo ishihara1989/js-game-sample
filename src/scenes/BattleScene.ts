@@ -3,7 +3,8 @@ import { Unit } from '../objects/Unit';
 import { BattleResult } from '../types/BattleTypes';
 import { Stage } from '../stages/Stage';
 import { StageFactory } from '../stages/StageFactory';
-import { StageStatus } from '../types/StageTypes';
+// Remove unused import
+// import { StageStatus } from '../types/StageTypes';
 import { createBasicMeleeSkill, createBasicRangeSkill, createBasicAreaSkill } from '../skills';
 
 export class BattleScene extends Phaser.Scene {
@@ -30,14 +31,15 @@ export class BattleScene extends Phaser.Scene {
     super('BattleScene');
   }
 
-  init(data: any): void {
+  // Changed type from 'any' to more explicit type
+  init(data: { stageId?: string }): void {
     // 受け取ったパラメータをチェック
     if (data && data.stageId) {
       this.stageId = data.stageId;
-      console.log(`Initializing battle with stage ID: ${this.stageId}`);
+      console.warn(`Initializing battle with stage ID: ${this.stageId}`);
     } else {
       this.stageId = '1-1'; // デフォルト値
-      console.log('No stage ID provided, using default stage 1-1');
+      console.warn('No stage ID provided, using default stage 1-1');
     }
 
     // バトル状態をリセット
@@ -127,12 +129,12 @@ export class BattleScene extends Phaser.Scene {
     const areaSkill = createBasicAreaSkill();
     this.playerUnit.addSkill(areaSkill);
 
-    console.log('Player skills setup completed');
+    console.warn('Player skills setup completed');
   }
 
   // ユニットのUI作成（プレイヤーと敵で共通）
   private createUnitUI(unit: Unit): void {
-    console.log(`Creating UI for ${unit.name}, isPlayer: ${unit.isPlayer}`);
+    console.warn(`Creating UI for ${unit.name}, isPlayer: ${unit.isPlayer}`);
 
     // HPバー
     const healthBar = this.add.graphics();
