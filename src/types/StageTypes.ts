@@ -38,7 +38,7 @@ export enum StageStatus {
   NOT_STARTED,
   IN_PROGRESS,
   VICTORY,
-  DEFEAT
+  DEFEAT,
 }
 
 // ステージの結果データ

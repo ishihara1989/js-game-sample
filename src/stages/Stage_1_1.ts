@@ -19,7 +19,7 @@ export class Stage_1_1 extends Stage {
         items: ['potion_small'],
       },
     };
-    
+
     super(scene, config);
   }
 
@@ -42,12 +42,12 @@ export class Stage_1_1 extends Stage {
   protected setupBackground(): void {
     // 基本的な背景を使用
     super.setupBackground();
-    
+
     // 追加の装飾（木など）
     for (let i = 0; i < 5; i++) {
       const x = Phaser.Math.Between(50, 750);
       const y = Phaser.Math.Between(50, 550);
-      
+
       // 簡単な木の表現
       const treeBase = this.scene.add.circle(x, y, 10, 0x663300);
       const treeTop = this.scene.add.circle(x, y - 20, 30, 0x006600, 0.8);

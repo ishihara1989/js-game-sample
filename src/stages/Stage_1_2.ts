@@ -19,7 +19,7 @@ export class Stage_1_2 extends Stage {
         items: ['potion_small', 'potion_small'],
       },
     };
-    
+
     super(scene, config);
   }
 
@@ -47,26 +47,26 @@ export class Stage_1_2 extends Stage {
   protected setupBackground(): void {
     // 基本的な背景を使用
     super.setupBackground();
-    
+
     // 追加の装飾（森の深さを表現）
     for (let i = 0; i < 10; i++) {
       const x = Phaser.Math.Between(50, 750);
       const y = Phaser.Math.Between(50, 550);
-      
+
       // より大きい木
       const treeBase = this.scene.add.rectangle(x, y, 12, 40, 0x663300);
       const treeTop = this.scene.add.circle(x, y - 30, 35, 0x004400, 0.8);
     }
-    
+
     // 霧のエフェクト
     const fogGraphics = this.scene.add.graphics();
     fogGraphics.fillStyle(0xffffff, 0.1);
-    
+
     for (let i = 0; i < 8; i++) {
       const x = Phaser.Math.Between(0, 800);
       const y = Phaser.Math.Between(0, 600);
       const radius = Phaser.Math.Between(50, 150);
-      
+
       fogGraphics.fillCircle(x, y, radius);
     }
   }
@@ -77,13 +77,13 @@ export class Stage_1_2 extends Stage {
   protected onStageCleared(): void {
     // 基本的なクリア処理
     super.onStageCleared();
-    
+
     // 追加のエフェクト（例：光のエフェクト）
     const centerX = this.scene.cameras.main.width / 2;
     const centerY = this.scene.cameras.main.height / 2;
-    
+
     const victoryEffect = this.scene.add.circle(centerX, centerY, 10, 0xffff00, 1);
-    
+
     this.scene.tweens.add({
       targets: victoryEffect,
       scale: 20,
@@ -91,7 +91,7 @@ export class Stage_1_2 extends Stage {
       duration: 1000,
       onComplete: () => {
         victoryEffect.destroy();
-      }
+      },
     });
   }
 }

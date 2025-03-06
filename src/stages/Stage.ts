@@ -24,7 +24,7 @@ export class Stage {
   constructor(scene: BattleScene, config: StageConfig) {
     this.scene = scene;
     this.config = config;
-    
+
     // 敵の構成はサブクラスで定義
     this.setupEnemyConfigs();
   }
@@ -64,7 +64,7 @@ export class Stage {
 
     // 背景の設定
     this.setupBackground();
-    
+
     // 敵ユニットの生成
     this.createEnemyUnits();
   }
@@ -75,7 +75,7 @@ export class Stage {
    */
   protected setupBackground(): void {
     // 基本的な背景の設定（サブクラスでオーバーライド可能）
-    
+
     // デフォルトの背景
     if (!this.config.backgroundKey) {
       // 簡単な地面の表現
@@ -123,14 +123,14 @@ export class Stage {
     // 基本的な敵ユニットの生成
     this.enemyConfigs.forEach((enemyConfig, index) => {
       // 敵の種類に基づいて適切な設定を行う
-      let texture = 'enemy'; // デフォルトのテクスチャ
+      const texture = 'enemy'; // デフォルトのテクスチャ
       let name = 'Enemy';
       let color = 0xff5555;
       let maxHealth = 80;
       let attack = 8;
       let defense = 3;
       let speed = 1.5;
-      
+
       // 敵の種類ごとに設定をカスタマイズ
       switch (enemyConfig.type) {
         case 'goblin':
@@ -159,13 +159,13 @@ export class Stage {
           break;
         // 他の敵タイプは必要に応じて追加
       }
-      
+
       // 敵レベルに基づいてステータスを調整
       const levelMultiplier = 1 + (enemyConfig.level - 1) * 0.2;
       maxHealth = Math.floor(maxHealth * levelMultiplier);
       attack = Math.floor(attack * levelMultiplier);
       defense = Math.floor(defense * levelMultiplier);
-      
+
       // カスタムステータスの適用（設定されている場合）
       if (enemyConfig.stats) {
         if (enemyConfig.stats.maxHealth) maxHealth = enemyConfig.stats.maxHealth;
@@ -173,16 +173,16 @@ export class Stage {
         if (enemyConfig.stats.defense) defense = enemyConfig.stats.defense;
         if (enemyConfig.stats.speed) speed = enemyConfig.stats.speed;
       }
-      
+
       // 位置の決定
       let x = 600; // デフォルト位置
       let y = 200 + index * 100;
-      
+
       if (enemyConfig.position) {
         x = enemyConfig.position.x;
         y = enemyConfig.position.y;
       }
-      
+
       // 敵ユニットの作成
       const enemyUnit = new Unit({
         scene: this.scene,
@@ -197,18 +197,18 @@ export class Stage {
         isPlayer: false,
         color,
       });
-      
+
       this.enemyUnits.push(enemyUnit);
     });
-    
+
     // プレイヤーとの関連付け
     if (this.playerUnit) {
       // 初期の敵をターゲットに設定
       if (this.enemyUnits.length > 0) {
         this.playerUnit.setTarget(this.enemyUnits[0]);
-        
+
         // 敵もプレイヤーをターゲットに設定
-        this.enemyUnits.forEach(enemy => {
+        this.enemyUnits.forEach((enemy) => {
           enemy.setTarget(this.playerUnit);
         });
       }
@@ -221,7 +221,7 @@ export class Stage {
   start(): void {
     this.status = StageStatus.IN_PROGRESS;
     this.startTime = this.scene.time.now;
-    
+
     console.log(`Stage ${this.config.id} (${this.config.name}) started!`);
   }
 
@@ -231,14 +231,14 @@ export class Stage {
    */
   update(delta: number): void {
     if (this.status !== StageStatus.IN_PROGRESS) return;
-    
+
     // 敵ユニットの更新
-    this.enemyUnits.forEach(unit => {
+    this.enemyUnits.forEach((unit) => {
       if (unit.health > 0) {
         unit.update(delta);
       }
     });
-    
+
     // 勝敗判定
     this.checkBattleEnd();
   }
@@ -253,9 +253,9 @@ export class Stage {
       this.onStageFailed();
       return;
     }
-    
+
     // すべての敵のHPが0以下になったら勝利
-    const allEnemiesDefeated = this.enemyUnits.every(unit => unit.health <= 0);
+    const allEnemiesDefeated = this.enemyUnits.every((unit) => unit.health <= 0);
     if (allEnemiesDefeated) {
       this.status = StageStatus.VICTORY;
       this.onStageCleared();
@@ -268,12 +268,12 @@ export class Stage {
    */
   protected onStageCleared(): void {
     console.log(`Stage ${this.config.id} cleared!`);
-    
+
     // リザルトシーンに渡すデータを作成
     if (this.playerUnit && this.enemyUnits.length > 0) {
       const victorUnit = this.playerUnit;
       const defeatedUnit = this.enemyUnits[0]; // 代表として最初の敵を設定
-      
+
       const result = {
         victory: true,
         defeatedUnit,
@@ -282,7 +282,7 @@ export class Stage {
         gold: this.config.rewards.gold,
         items: this.config.rewards.items || [],
       };
-      
+
       // 少し待ってからリザルト画面へ
       this.scene.time.delayedCall(1500, () => {
         this.scene.endBattle(result);
@@ -295,13 +295,13 @@ export class Stage {
    */
   protected onStageFailed(): void {
     console.log(`Stage ${this.config.id} failed!`);
-    
+
     // リザルトシーンに渡すデータを作成
     if (this.playerUnit && this.enemyUnits.length > 0) {
       // 生き残っている敵の中から勝者を選択
-      const aliveEnemies = this.enemyUnits.filter(unit => unit.health > 0);
+      const aliveEnemies = this.enemyUnits.filter((unit) => unit.health > 0);
       const victorUnit = aliveEnemies.length > 0 ? aliveEnemies[0] : this.enemyUnits[0];
-      
+
       const result = {
         victory: false,
         defeatedUnit: this.playerUnit,
@@ -310,7 +310,7 @@ export class Stage {
         gold: 0,
         items: [],
       };
-      
+
       // 少し待ってからリザルト画面へ
       this.scene.time.delayedCall(1500, () => {
         this.scene.endBattle(result);
@@ -323,8 +323,8 @@ export class Stage {
    */
   getResult(): StageResult {
     const timeTaken = this.startTime > 0 ? this.scene.time.now - this.startTime : 0;
-    const enemiesDefeated = this.enemyUnits.filter(unit => unit.health <= 0).length;
-    
+    const enemiesDefeated = this.enemyUnits.filter((unit) => unit.health <= 0).length;
+
     return {
       stageId: this.config.id,
       status: this.status,
@@ -341,9 +341,9 @@ export class Stage {
    */
   setNextTarget(): void {
     if (!this.playerUnit) return;
-    
+
     // 生きている敵を探す
-    const nextEnemy = this.enemyUnits.find(unit => unit.health > 0);
+    const nextEnemy = this.enemyUnits.find((unit) => unit.health > 0);
     if (nextEnemy) {
       this.playerUnit.setTarget(nextEnemy);
     }
@@ -354,11 +354,11 @@ export class Stage {
    */
   cleanup(): void {
     // 敵ユニットの削除
-    this.enemyUnits.forEach(unit => {
+    this.enemyUnits.forEach((unit) => {
       // 必要ならPhaser上のオブジェクトも削除
       unit.destroy();
     });
-    
+
     this.enemyUnits = [];
     this.playerUnit = null;
     this.status = StageStatus.NOT_STARTED;

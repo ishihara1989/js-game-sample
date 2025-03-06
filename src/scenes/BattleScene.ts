@@ -184,7 +184,7 @@ export class BattleScene extends Phaser.Scene {
     if (!this.debugText) return;
 
     let debugInfo = `Player: HP ${Math.floor(this.playerUnit.health)}/${this.playerUnit.maxHealth}, Skill: ${Math.floor(this.playerUnit.skillCooldown)}/${this.playerUnit.skillMaxCooldown}\n`;
-    
+
     // ステージ情報の追加
     if (this.currentStage) {
       debugInfo += `Stage: ${this.currentStage.id} (${this.currentStage.name})\n`;
@@ -195,11 +195,11 @@ export class BattleScene extends Phaser.Scene {
 
   private startBattle(): void {
     this.battleActive = true;
-    
+
     if (this.currentStage) {
       this.currentStage.start();
     }
-    
+
     if (this.debugText) {
       this.debugText.setText('Battle Started');
     }
