@@ -85,7 +85,7 @@ export class ResultScene extends Phaser.Scene {
     // ボタンをクリック可能に
     continueButton.setInteractive();
     continueButton.on('pointerdown', () => {
-      this.returnToMainScene();
+      this.returnToMenuScene();
     });
     
     // ボタンホバーエフェクト
@@ -134,8 +134,8 @@ export class ResultScene extends Phaser.Scene {
     return text;
   }
   
-  private returnToMainScene(): void {
-    // メインシーンに戻る
-    this.scene.start('MainScene');
+  private returnToMenuScene(): void {
+    // メニューシーンに戻る
+    this.scene.start('MenuScene');
   }
 }
