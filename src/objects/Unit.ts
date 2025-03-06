@@ -14,6 +14,16 @@ interface UnitConfig {
   speed: number;
   isPlayer: boolean;
   color: number;
+  level?: number; // レベルを追加（省略可能）
+}
+
+/**
+ * レベルに応じたスキル解放定義
+ */
+export interface SkillUnlock {
+  level: number;      // スキル解放レベル
+  skillFactory: () => Skill; // スキル生成関数
+  message?: string;   // 解放時のメッセージ（省略可）
 }
 
 export class Unit extends Phaser.GameObjects.Container {
@@ -34,6 +44,13 @@ export class Unit extends Phaser.GameObjects.Container {
   protected moveCooldown: number = 0; // privateからprotectedに変更
   readonly moveCooldownMax: number = 500; // ミリ秒
 
+  // レベルと経験値関連
+  protected level: number = 1;
+  protected experience: number = 0;
+  protected requiredExperience: number = 100; // レベル2になるための必要経験値
+  // レベルごとに解放されるスキル定義
+  protected skillUnlocks: SkillUnlock[] = [];
+
   // 戦闘報酬関連
   protected expValue: number = 0; // 倒した時に得られる経験値
 
@@ -46,6 +63,7 @@ export class Unit extends Phaser.GameObjects.Container {
   protected directionIndicator: Phaser.GameObjects.Graphics; // privateからprotectedに変更
   hpText?: Phaser.GameObjects.Text;
   nameText: Phaser.GameObjects.Text;
+  levelText?: Phaser.GameObjects.Text; // レベル表示用テキスト
 
   // 移動関連
   protected movementTarget: Phaser.Math.Vector2 | null = null; // privateからprotectedに変更
@@ -68,6 +86,11 @@ export class Unit extends Phaser.GameObjects.Container {
     this.defense = config.defense;
     this.speed = config.speed;
     this.battleScene = config.scene as BattleScene;
+    
+    // レベルの設定（指定があれば使用）
+    if (config.level) {
+      this.level = config.level;
+    }
 
     // コンテナ自体に深度を設定
     this.setDepth(5);
@@ -76,7 +99,8 @@ export class Unit extends Phaser.GameObjects.Container {
     this.unitCircle = this.scene.add.graphics();
     this.unitCircle.fillStyle(config.color, 1);
     this.unitCircle.fillCircle(0, 0, 20);
-    this.unitCircle.lineStyle(2, 0xffffff, 0.8);
+    this.unitCircle.lineStyle(2, 0xffffff,
+ 0.8);
     this.unitCircle.strokeCircle(0, 0, 20);
 
     // 向きを示す三角形
@@ -94,6 +118,16 @@ export class Unit extends Phaser.GameObjects.Container {
     this.nameText.setOrigin(0.5);
     // 名前テキストに高い深度を設定
     this.nameText.setDepth(10);
+    
+    // レベル表示テキスト
+    this.levelText = this.scene.add.text(this.x, this.y - 45, `Lv.${this.level}`, {
+      font: '12px Arial',
+      color: '#ffff00',
+      stroke: '#000000',
+      strokeThickness: 2,
+    });
+    this.levelText.setOrigin(0.5);
+    this.levelText.setDepth(10);
 
     // コンテナには円とインディケーターだけ追加
     this.add([this.unitCircle, this.directionIndicator]);
@@ -120,6 +154,11 @@ export class Unit extends Phaser.GameObjects.Container {
 
     // 名前テキストの位置更新
     this.nameText.setPosition(this.x, this.y - 60);
+    
+    // レベルテキストの位置更新
+    if (this.levelText) {
+      this.levelText.setPosition(this.x, this.y - 45);
+    }
   }
 
   protected updateCooldowns(delta: number): void {
@@ -444,6 +483,227 @@ export class Unit extends Phaser.GameObjects.Container {
     return this.expValue;
   }
 
+  /**
+   * 現在のレベルを取得
+   * @returns 現在のレベル
+   */
+  getLevel(): number {
+    return this.level;
+  }
+
+  /**
+   * 経験値を加算し、必要に応じてレベルアップを処理
+   * @param exp 獲得した経験値
+   * @returns レベルアップしたかどうか
+   */
+  addExperience(exp: number): boolean {
+    // 経験値を加算
+    this.experience += exp;
+
+    // 経験値獲得メッセージ
+    console.warn(`${this.name} gained ${exp} experience points.`);
+    
+    // 獲得経験値を表示
+    this.showExpText(exp);
+
+    // レベルアップのチェック
+    if (this.experience >= this.requiredExperience) {
+      this.levelUp();
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
+   * 経験値獲得テキストを表示
+   */
+  private showExpText(exp: number): void {
+    // 表示位置をダメージテキストとは別の場所に
+    const expText = this.scene.add.text(this.x, this.y - 40, `+${exp} EXP`, {
+      font: 'bold 14px Arial',
+      color: '#00ff00',
+    });
+    expText.setOrigin(0.5);
+    expText.setDepth(15);
+
+    // テキストを上に浮かせながらフェードアウト
+    this.scene.tweens.add({
+      targets: expText,
+      y: expText.y - 30,
+      alpha: 0,
+      duration: 1500,
+      onComplete: () => {
+        expText.destroy();
+      },
+    });
+  }
+
+  /**
+   * レベルアップ処理
+   */
+  private levelUp(): void {
+    // レベルを上げる
+    this.level++;
+    
+    // 余った経験値を次のレベルに持ち越し
+    this.experience -= this.requiredExperience;
+    
+    // 次のレベルに必要な経験値を更新（レベルが上がるごとに必要経験値が増加）
+    this.requiredExperience = Math.floor(this.requiredExperience * 1.5);
+    
+    // レベルテキストを更新
+    if (this.levelText) {
+      this.levelText.setText(`Lv.${this.level}`);
+    }
+    
+    // レベルアップエフェクト表示
+    this.showLevelUpEffect();
+    
+    console.warn(`${this.name} leveled up to ${this.level}!`);
+    
+    // レベルアップによるスキル解放チェック
+    this.checkSkillUnlocks();
+  }
+
+  /**
+   * レベルアップエフェクトを表示
+   */
+  private showLevelUpEffect(): void {
+    // レベルアップテキスト
+    const levelUpText = this.scene.add.text(this.x, this.y - 70, 'LEVEL UP!', {
+      font: 'bold 18px Arial',
+      color: '#ffff00',
+      stroke: '#000000',
+      strokeThickness: 4,
+    });
+    levelUpText.setOrigin(0.5);
+    levelUpText.setDepth(20);
+    
+    // 輝くエフェクト（グラフィックス）
+    const glowEffect = this.scene.add.graphics();
+    glowEffect.fillStyle(0xffff00, 0.3);
+    glowEffect.fillCircle(this.x, this.y, 50);
+    glowEffect.setDepth(3);
+    
+    // エフェクトアニメーション
+    this.scene.tweens.add({
+      targets: [glowEffect],
+      alpha: 0,
+      scale: 2,
+      duration: 1000,
+      onComplete: () => {
+        glowEffect.destroy();
+      },
+    });
+    
+    // テキストアニメーション（上に移動しながらフェードアウト）
+    this.scene.tweens.add({
+      targets: levelUpText,
+      y: levelUpText.y - 40,
+      alpha: 0,
+      duration: 1500,
+      delay: 500,
+      onComplete: () => {
+        levelUpText.destroy();
+      },
+    });
+  }
+
+  /**
+   * レベルアップによるスキル解放をチェック
+   */
+  private checkSkillUnlocks(): void {
+    // 現在のレベルで解放されるスキルを検索
+    const newSkills = this.skillUnlocks.filter(unlock => unlock.level === this.level);
+    
+    if (newSkills.length > 0) {
+      // スキル解放の処理
+      newSkills.forEach(unlockInfo => {
+        // スキルを生成して追加
+        const newSkill = unlockInfo.skillFactory();
+        this.addSkill(newSkill);
+        
+        // 解放メッセージがあれば表示
+        if (unlockInfo.message) {
+          this.showSkillUnlockMessage(newSkill.name, unlockInfo.message);
+        } else {
+          this.showSkillUnlockMessage(newSkill.name);
+        }
+      });
+    }
+  }
+  
+  /**
+   * スキル解放メッセージの表示
+   */
+  private showSkillUnlockMessage(skillName: string, message?: string): void {
+    // スキル解放メッセージの表示（コンソール）
+    console.warn(`${this.name} unlocked new skill: ${skillName}`);
+    
+    // スキル解放テキスト（画面上）
+    const unlockText = this.scene.add.text(this.x, this.y - 90, `New Skill: ${skillName}!`, {
+      font: 'bold 16px Arial',
+      color: '#00ffff',
+      stroke: '#000000',
+      strokeThickness: 3,
+    });
+    unlockText.setOrigin(0.5);
+    unlockText.setDepth(20);
+    
+    // 詳細メッセージ（指定があれば）
+    if (message) {
+      const detailText = this.scene.add.text(this.x, this.y - 70, message, {
+        font: '12px Arial',
+        color: '#ffffff',
+        stroke: '#000000',
+        strokeThickness: 2,
+      });
+      detailText.setOrigin(0.5);
+      detailText.setDepth(20);
+      
+      // 詳細メッセージのアニメーション
+      this.scene.tweens.add({
+        targets: detailText,
+        alpha: 0,
+        duration: 2000,
+        delay: 2000,
+        onComplete: () => {
+          detailText.destroy();
+        },
+      });
+    }
+    
+    // テキストアニメーション
+    this.scene.tweens.add({
+      targets: unlockText,
+      alpha: 0,
+      duration: 2000,
+      delay: 1500,
+      onComplete: () => {
+        unlockText.destroy();
+      },
+    });
+  }
+
+  /**
+   * レベルアップによって解放されるスキルを設定
+   * @param skillUnlocks スキル解放定義の配列
+   */
+  setSkillUnlocks(skillUnlocks: SkillUnlock[]): void {
+    this.skillUnlocks = skillUnlocks;
+    
+    // 既に到達しているレベルのスキルを解放（初期化時など）
+    const availableSkills = skillUnlocks.filter(unlock => unlock.level <= this.level);
+    
+    if (availableSkills.length > 0) {
+      availableSkills.forEach(unlockInfo => {
+        const skill = unlockInfo.skillFactory();
+        this.addSkill(skill);
+      });
+    }
+  }
+
   // ユニットのクリーンアップ
   cleanup(): void {
     // 名前テキストを削除
@@ -454,6 +714,11 @@ export class Unit extends Phaser.GameObjects.Container {
     // HPテキストを削除
     if (this.hpText) {
       this.hpText.destroy();
+    }
+    
+    // レベルテキストを削除
+    if (this.levelText) {
+      this.levelText.destroy();
     }
 
     // コンテナを削除
