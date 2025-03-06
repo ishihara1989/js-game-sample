@@ -68,9 +68,16 @@ export class AreaSkill extends Skill {
     });
     
     // エフェクト表示（中心点のみ）
-    this.owner.battleScene.showSkillEffect(this.owner, target);
+    // this.owner と this.owner.battleScene は既にチェック済みだが、
+    // TypeScriptの型チェックのために再度確認
+    if (this.owner && this.owner.battleScene) {
+      this.owner.battleScene.showSkillEffect(this.owner, target);
+    }
     
-    console.warn(`${this.owner.name} uses ${this.name} affecting ${targets.length} targets!`);
+    // this.ownerは既にチェック済みだが、TypeScriptの型チェックのために再度確認
+    if (this.owner) {
+      console.warn(`${this.owner.name} uses ${this.name} affecting ${targets.length} targets!`);
+    }
     
     return true;
   }
@@ -93,8 +100,8 @@ export class AreaSkill extends Skill {
       if (unit === this.owner) return false;
       
       // プレイヤーとエネミーで対象を区別
-      if (this.owner.isPlayer && unit.isPlayer) return false; // プレイヤーなら味方は対象外
-      if (!this.owner.isPlayer && !unit.isPlayer) return false; // エネミーなら敵エネミーは対象外
+      if (this.owner && this.owner.isPlayer && unit.isPlayer) return false; // プレイヤーなら味方は対象外
+      if (this.owner && !this.owner.isPlayer && !unit.isPlayer) return false; // エネミーなら敵エネミーは対象外
       
       // 範囲内かどうか判定
       const distance = Phaser.Math.Distance.Between(
