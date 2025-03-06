@@ -23,7 +23,7 @@ export class MenuScene extends Phaser.Scene {
     // シーン初期化時に状態をリセット
     this.subMenuActive = false;
     this.currentSubMenu = null;
-    console.log('MenuScene initialized, states reset');
+    console.warn('MenuScene initialized, states reset');
   }
 
   preload(): void {
@@ -142,7 +142,7 @@ export class MenuScene extends Phaser.Scene {
       const button = this.createMenuButton(item.text, 0, index * 60);
       const background = button.getAt(0) as Phaser.GameObjects.Rectangle;
       background.on('pointerdown', () => {
-        console.log(`Button clicked: ${item.text}`);
+        console.warn(`Button clicked: ${item.text}`);
         item.action();
       });
       this.menuContainer.add(button);
@@ -257,9 +257,9 @@ export class MenuScene extends Phaser.Scene {
 
   // ステージ選択メニューを開く
   private openStageSelect(): void {
-    console.log('Opening stage select menu, subMenuActive state:', this.subMenuActive);
+    console.warn('Opening stage select menu, subMenuActive state:', this.subMenuActive);
     if (this.subMenuActive) {
-      console.log('Sub menu already active, not opening new one');
+      console.warn('Sub menu already active, not opening new one');
       return;
     }
     this.subMenuActive = true;
@@ -298,7 +298,7 @@ export class MenuScene extends Phaser.Scene {
     const backButton = this.createMenuButton('戻る', 0, stages.length * 70 + 20);
     const backBg = backButton.getAt(0) as Phaser.GameObjects.Rectangle;
     backBg.on('pointerdown', () => {
-      console.log('Back button clicked');
+      console.warn('Back button clicked');
       this.closeSubMenu(stageSelectContainer);
     });
 
@@ -314,7 +314,12 @@ export class MenuScene extends Phaser.Scene {
   }
 
   // ステージボタンの作成
-  private createStageButton(stage: any, x: number, y: number): Phaser.GameObjects.Container {
+  // Fixed 'any' type with a more specific type
+  private createStageButton(
+    stage: { id: string; name: string; level: number; unlocked: boolean },
+    x: number,
+    y: number
+  ): Phaser.GameObjects.Container {
     const container = this.add.container(x, y);
 
     // ボタン背景
@@ -325,7 +330,7 @@ export class MenuScene extends Phaser.Scene {
 
       // クリックイベント
       background.on('pointerdown', () => {
-        console.log(`Starting battle: Stage ${stage.id}`);
+        console.warn(`Starting battle: Stage ${stage.id}`);
         this.startBattle(stage.id);
       });
 
@@ -360,15 +365,15 @@ export class MenuScene extends Phaser.Scene {
 
   // バトル開始
   private startBattle(stageId: string): void {
-    console.log(`Starting battle with stage ID: ${stageId}`);
+    console.warn(`Starting battle with stage ID: ${stageId}`);
     this.scene.start('BattleScene', { stageId });
   }
 
   // アイテムメニューを開く
   private openItemMenu(): void {
-    console.log('Opening item menu, subMenuActive state:', this.subMenuActive);
+    console.warn('Opening item menu, subMenuActive state:', this.subMenuActive);
     if (this.subMenuActive) {
-      console.log('Sub menu already active, not opening new one');
+      console.warn('Sub menu already active, not opening new one');
       return;
     }
     this.subMenuActive = true;
@@ -417,7 +422,7 @@ export class MenuScene extends Phaser.Scene {
     const backButton = this.createMenuButton('戻る', 0, 250);
     const backBg = backButton.getAt(0) as Phaser.GameObjects.Rectangle;
     backBg.on('pointerdown', () => {
-      console.log('Back button clicked');
+      console.warn('Back button clicked');
       this.closeSubMenu(itemMenuContainer);
     });
 
@@ -433,7 +438,12 @@ export class MenuScene extends Phaser.Scene {
   }
 
   // アイテムボタンの作成
-  private createItemButton(item: any, x: number, y: number): Phaser.GameObjects.Container {
+  // Fixed 'any' type with a more specific type
+  private createItemButton(
+    item: { name: string; type: string; quantity: number },
+    x: number,
+    y: number
+  ): Phaser.GameObjects.Container {
     const container = this.add.container(x, y);
 
     // 背景
@@ -459,7 +469,7 @@ export class MenuScene extends Phaser.Scene {
 
     // クリックイベント（仮の実装）
     background.on('pointerdown', () => {
-      console.log(`アイテム「${item.name}」をクリックしました`);
+      console.warn(`アイテム「${item.name}」をクリックしました`);
     });
 
     return container;
@@ -481,9 +491,9 @@ export class MenuScene extends Phaser.Scene {
 
   // 装備メニューを開く
   private openEquipmentMenu(): void {
-    console.log('Opening equipment menu, subMenuActive state:', this.subMenuActive);
+    console.warn('Opening equipment menu, subMenuActive state:', this.subMenuActive);
     if (this.subMenuActive) {
-      console.log('Sub menu already active, not opening new one');
+      console.warn('Sub menu already active, not opening new one');
       return;
     }
     this.subMenuActive = true;
@@ -541,7 +551,7 @@ export class MenuScene extends Phaser.Scene {
     const backButton = this.createMenuButton('戻る', 0, 200);
     const backBg = backButton.getAt(0) as Phaser.GameObjects.Rectangle;
     backBg.on('pointerdown', () => {
-      console.log('Back button clicked');
+      console.warn('Back button clicked');
       this.closeSubMenu(equipMenuContainer);
     });
 
@@ -558,9 +568,9 @@ export class MenuScene extends Phaser.Scene {
 
   // ステータス詳細メニューを開く
   private openStatusMenu(): void {
-    console.log('Opening status menu, subMenuActive state:', this.subMenuActive);
+    console.warn('Opening status menu, subMenuActive state:', this.subMenuActive);
     if (this.subMenuActive) {
-      console.log('Sub menu already active, not opening new one');
+      console.warn('Sub menu already active, not opening new one');
       return;
     }
     this.subMenuActive = true;
@@ -639,7 +649,7 @@ export class MenuScene extends Phaser.Scene {
     const backButton = this.createMenuButton('戻る', 0, 250);
     const backBg = backButton.getAt(0) as Phaser.GameObjects.Rectangle;
     backBg.on('pointerdown', () => {
-      console.log('Back button clicked');
+      console.warn('Back button clicked');
       this.closeSubMenu(statusMenuContainer);
     });
 
