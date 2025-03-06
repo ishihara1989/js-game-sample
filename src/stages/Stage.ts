@@ -168,7 +168,7 @@ export class Stage {
       this.playerUnit.setTarget(this.enemyUnits[0]);
 
       // 敵もプレイヤーをターゲットに設定
-      this.enemyUnits.forEach(enemy => {
+      this.enemyUnits.forEach((enemy) => {
         if (this.playerUnit) {
           // nullチェックを追加
           enemy.setTarget(this.playerUnit);
@@ -195,7 +195,7 @@ export class Stage {
     if (this.status !== StageStatus.IN_PROGRESS) return;
 
     // 敵ユニットの更新
-    this.enemyUnits.forEach(unit => {
+    this.enemyUnits.forEach((unit) => {
       if (unit.health > 0) {
         unit.update(delta);
       }
@@ -217,7 +217,7 @@ export class Stage {
     }
 
     // すべての敵のHPが0以下になったら勝利
-    const allEnemiesDefeated = this.enemyUnits.every(unit => unit.health <= 0);
+    const allEnemiesDefeated = this.enemyUnits.every((unit) => unit.health <= 0);
     if (allEnemiesDefeated) {
       this.status = StageStatus.VICTORY;
       this.onStageCleared();
@@ -241,7 +241,7 @@ export class Stage {
       let totalExp = 0;
       let dropItems: string[] = [];
 
-      this.enemyUnits.forEach(enemy => {
+      this.enemyUnits.forEach((enemy) => {
         // 経験値を加算
         if (enemy instanceof EnemyUnit) {
           totalExp += enemy.getExpValue();
@@ -278,7 +278,7 @@ export class Stage {
     // リザルトシーンに渡すデータを作成
     if (this.playerUnit && this.enemyUnits.length > 0) {
       // 生き残っている敵の中から勝者を選択
-      const aliveEnemies = this.enemyUnits.filter(unit => unit.health > 0);
+      const aliveEnemies = this.enemyUnits.filter((unit) => unit.health > 0);
       const victorUnit = aliveEnemies.length > 0 ? aliveEnemies[0] : this.enemyUnits[0];
 
       const result = {
@@ -302,7 +302,7 @@ export class Stage {
    */
   getResult(): StageResult {
     const timeTaken = this.startTime > 0 ? this.scene.time.now - this.startTime : 0;
-    const enemiesDefeated = this.enemyUnits.filter(unit => unit.health <= 0).length;
+    const enemiesDefeated = this.enemyUnits.filter((unit) => unit.health <= 0).length;
 
     return {
       stageId: this.config.id,
@@ -322,7 +322,7 @@ export class Stage {
     if (!this.playerUnit) return;
 
     // 生きている敵を探す
-    const nextEnemy = this.enemyUnits.find(unit => unit.health > 0);
+    const nextEnemy = this.enemyUnits.find((unit) => unit.health > 0);
     if (nextEnemy) {
       this.playerUnit.setTarget(nextEnemy);
     }

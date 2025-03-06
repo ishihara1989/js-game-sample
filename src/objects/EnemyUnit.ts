@@ -44,7 +44,7 @@ export class EnemyUnit extends Unit {
   protected baseDefense: number = 4;
   protected baseSpeed: number = 1.5;
   protected baseExpValue: number = 10;
-  
+
   // ドロップアイテム
   protected possibleDrops: DropItem[] = [];
 
@@ -58,19 +58,16 @@ export class EnemyUnit extends Unit {
   constructor(config: EnemyUnitConfig) {
     // 基本ステータスの初期化
     this.initializeBaseStats();
-    
+
     // レベルに応じてステータスを計算
-    const { maxHealth, attack, defense, speed } = 
-      config.customStats || 
-      EnemyUnit.calculateStats(
-        config.level,
-        {
-          maxHealth: this.baseMaxHealth,
-          attack: this.baseAttack,
-          defense: this.baseDefense,
-          speed: this.baseSpeed
-        }
-      );
+    const { maxHealth, attack, defense, speed } =
+      config.customStats ||
+      EnemyUnit.calculateStats(config.level, {
+        maxHealth: this.baseMaxHealth,
+        attack: this.baseAttack,
+        defense: this.baseDefense,
+        speed: this.baseSpeed,
+      });
 
     // Unitクラスのコンストラクタを呼び出し
     super({
@@ -89,13 +86,13 @@ export class EnemyUnit extends Unit {
 
     // エネミー固有のプロパティを設定
     this.level = config.level;
-    
+
     // 経験値の初期化
     this.expValue = this.calculateExpValue();
-    
+
     // ドロップアイテムの初期化
     this.initializeDrops();
-    
+
     // グラフィックス参照を取得
     this.unitCircle = this.getAt(0) as Phaser.GameObjects.Graphics;
   }
@@ -115,10 +112,13 @@ export class EnemyUnit extends Unit {
    * @param baseStats 基本ステータス
    * @returns 計算されたステータス
    */
-  static calculateStats(level: number, baseStats: { maxHealth: number; attack: number; defense: number; speed: number }) {
+  static calculateStats(
+    level: number,
+    baseStats: { maxHealth: number; attack: number; defense: number; speed: number }
+  ) {
     // レベルに応じた成長率
     const growthRate = 1 + (level - 1) * 0.2;
-    
+
     return {
       maxHealth: Math.floor(baseStats.maxHealth * growthRate),
       attack: Math.floor(baseStats.attack * growthRate),
@@ -152,15 +152,15 @@ export class EnemyUnit extends Unit {
    */
   public getDropItems(): string[] {
     const drops: string[] = [];
-    
+
     // 各アイテムの抽選
-    this.possibleDrops.forEach(item => {
+    this.possibleDrops.forEach((item) => {
       // 乱数を生成して確率と比較
       if (Math.random() <= item.dropRate) {
         drops.push(item.id);
       }
     });
-    
+
     return drops;
   }
 
@@ -180,7 +180,7 @@ export class EnemyUnit extends Unit {
   protected updateAI(delta: number): void {
     // 基本的な行動パターン（親クラスのAIを使用）
     super.updateAI(delta);
-    
+
     // サブクラスでオーバーライドして拡張可能
   }
 }

@@ -80,10 +80,10 @@ export class OrcEnemy extends EnemyUnit {
   protected updateAI(delta: number): void {
     // 基本的なAI行動を継承
     super.updateAI(delta);
-    
+
     // HPが閾値以下でエンレイジ状態にする
     const healthPercent = this.health / this.maxHealth;
-    
+
     if (healthPercent <= this.enrageThreshold && !this.enraged) {
       this.enrage();
     }
@@ -94,13 +94,13 @@ export class OrcEnemy extends EnemyUnit {
    */
   private enrage(): void {
     this.enraged = true;
-    
+
     // 攻撃力を1.5倍に上昇
     // ※実際には attackPower が readonly なので、通常は変更できない
     // ※将来的には状態異常システムを実装し、そちらで対応する予定
-    
+
     console.log(`${this.name} becomes enraged! Attack power increases!`);
-    
+
     // エンレイジ視覚効果（赤く点滅）
     this.scene.tweens.add({
       targets: this,
@@ -117,7 +117,7 @@ export class OrcEnemy extends EnemyUnit {
           this.unitCircle.lineStyle(2, 0xff0000, 0.8);
           this.unitCircle.strokeCircle(0, 0, 20);
         }
-      }
+      },
     });
   }
 
@@ -127,24 +127,26 @@ export class OrcEnemy extends EnemyUnit {
    */
   performAttack(target: Unit): void {
     if (!target) return;
-    
+
     // 攻撃クールダウンを設定
     this.attackCooldown = this.attackCooldownMax;
-    
+
     // エンレイジ状態なら攻撃力増加
     const attackMultiplier = this.enraged ? 1.5 : 1;
-    
+
     // ダメージ計算（エンレイジ状態なら1.5倍）
-    const damage = Math.max(1, (this.attackPower * attackMultiplier) - target.defense / 2);
-    
+    const damage = Math.max(1, this.attackPower * attackMultiplier - target.defense / 2);
+
     // ターゲットにダメージを与える
     target.takeDamage(damage);
-    
+
     // 攻撃エフェクトを表示
     if (this.battleScene) {
       this.battleScene.showAttackEffect(this, target);
     }
-    
-    console.log(`${this.name} attacks ${target.name} for ${damage} damage!${this.enraged ? ' (Enraged)' : ''}`);
+
+    console.log(
+      `${this.name} attacks ${target.name} for ${damage} damage!${this.enraged ? ' (Enraged)' : ''}`
+    );
   }
 }

@@ -12,7 +12,7 @@ export class SlimeEnemy extends EnemyUnit {
   private readonly dashCooldownMax: number = 5000; // 5秒
   private isDashing: boolean = false;
   private originalSpeed: number = 0;
-  
+
   constructor(scene: BattleScene, x: number, y: number, level: number) {
     super({
       scene,
@@ -23,7 +23,7 @@ export class SlimeEnemy extends EnemyUnit {
       isPlayer: false,
       color: 0x00aaff, // 青色
     });
-    
+
     // 元のスピードを記録
     this.originalSpeed = this.speed;
   }
@@ -77,10 +77,10 @@ export class SlimeEnemy extends EnemyUnit {
       this.updateDash(delta);
       return;
     }
-    
+
     // 基本的なAI行動を継承
     super.updateAI(delta);
-    
+
     // ダッシュクールダウン更新
     if (this.dashCooldown > 0) {
       this.dashCooldown -= delta;
@@ -92,13 +92,13 @@ export class SlimeEnemy extends EnemyUnit {
       this.prepareDash();
     }
   }
-  
+
   /**
    * ダッシュ攻撃の準備
    */
   private prepareDash(): void {
     if (!this.target) return;
-    
+
     // 視覚的な前兆効果（少し縮む）
     this.scene.tweens.add({
       targets: this,
@@ -108,26 +108,26 @@ export class SlimeEnemy extends EnemyUnit {
       yoyo: true,
       onComplete: () => {
         this.startDash();
-      }
+      },
     });
-    
+
     console.log(`${this.name} is preparing to dash!`);
   }
-  
+
   /**
    * ダッシュ攻撃の開始
    */
   private startDash(): void {
     if (!this.target) return;
-    
+
     this.isDashing = true;
-    
+
     // 移動速度を一時的に増加（3倍）
     this.speed = this.originalSpeed * 3;
-    
+
     // ターゲットに向かって直線的に移動するための目標設定
     this.movementTarget = new Phaser.Math.Vector2(this.target.x, this.target.y);
-    
+
     // 色を変更して強調（より鮮やかな青に）
     if (this.unitCircle) {
       this.unitCircle.clear();
@@ -136,10 +136,10 @@ export class SlimeEnemy extends EnemyUnit {
       this.unitCircle.lineStyle(2, 0xffffff, 0.8);
       this.unitCircle.strokeCircle(0, 0, 20);
     }
-    
+
     console.log(`${this.name} dashes towards ${this.target.name}!`);
   }
-  
+
   /**
    * ダッシュ中の更新処理
    */
@@ -148,7 +148,7 @@ export class SlimeEnemy extends EnemyUnit {
       this.endDash();
       return;
     }
-    
+
     // ターゲットとの距離を計算
     const distanceToTarget = Phaser.Math.Distance.Between(
       this.x,
@@ -156,36 +156,36 @@ export class SlimeEnemy extends EnemyUnit {
       this.target.x,
       this.target.y
     );
-    
+
     // ターゲットに衝突したらダメージを与えてダッシュ終了
     if (distanceToTarget < 30) {
       this.dashAttack(this.target);
       this.endDash();
     }
-    
+
     // ダッシュ中の移動処理（基本的な移動と同じだが直接呼び出し）
     this.updateMovement(delta);
   }
-  
+
   /**
    * ダッシュ攻撃の実行
    */
   private dashAttack(target: Unit): void {
     // 通常攻撃の1.5倍のダメージ
-    const damage = Math.max(1, (this.attackPower * 1.5) - target.defense / 2);
-    
+    const damage = Math.max(1, this.attackPower * 1.5 - target.defense / 2);
+
     // ターゲットにダメージを与える
     target.takeDamage(damage);
-    
+
     // 攻撃エフェクトを表示（より大きく）
     if (this.battleScene) {
       // 通常の攻撃エフェクトの代わりに、ダッシュ専用のエフェクトを表示
       const midX = (this.x + target.x) / 2;
       const midY = (this.y + target.y) / 2;
-      
+
       const dashEffect = this.scene.add.circle(midX, midY, 25, 0x00ffff);
       dashEffect.setDepth(20);
-      
+
       this.scene.tweens.add({
         targets: dashEffect,
         scale: { from: 0.8, to: 2 },
@@ -193,22 +193,22 @@ export class SlimeEnemy extends EnemyUnit {
         duration: 400,
         onComplete: () => {
           dashEffect.destroy();
-        }
+        },
       });
     }
-    
+
     console.log(`${this.name} dash attacks ${target.name} for ${damage} damage!`);
   }
-  
+
   /**
    * ダッシュ終了処理
    */
   private endDash(): void {
     this.isDashing = false;
-    
+
     // 速度を元に戻す
     this.speed = this.originalSpeed;
-    
+
     // 色を元に戻す
     if (this.unitCircle) {
       this.unitCircle.clear();
@@ -217,10 +217,10 @@ export class SlimeEnemy extends EnemyUnit {
       this.unitCircle.lineStyle(2, 0xffffff, 0.8);
       this.unitCircle.strokeCircle(0, 0, 20);
     }
-    
+
     // クールダウンを設定
     this.dashCooldown = this.dashCooldownMax;
-    
+
     // 移動目標をクリア
     this.movementTarget = null;
   }
