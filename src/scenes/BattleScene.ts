@@ -87,7 +87,7 @@ export class BattleScene extends Phaser.Scene {
     if (!this.battleActive) return;
 
     // 全ユニットの更新
-    this.allUnits.forEach(unit => {
+    this.allUnits.forEach((unit) => {
       if (unit.health > 0) {
         unit.update(delta);
       }
@@ -109,7 +109,7 @@ export class BattleScene extends Phaser.Scene {
   private createUnitUI(unit: Unit): void {
     // HPバー
     this.healthBars.set(unit, this.add.graphics());
-    
+
     // スキルゲージ
     this.skillBars.set(unit, this.add.graphics());
   }
@@ -118,7 +118,7 @@ export class BattleScene extends Phaser.Scene {
   addEnemyUnit(enemy: Unit): void {
     // 敵ユニットをリストに追加
     this.allUnits.push(enemy);
-    
+
     // 敵のUI要素を作成
     this.createUnitUI(enemy);
   }
@@ -126,14 +126,14 @@ export class BattleScene extends Phaser.Scene {
   // 全ユニットのUI更新
   private updateAllUI(): void {
     // 全ユニットのバーをクリア
-    this.healthBars.forEach(bar => bar.clear());
-    this.skillBars.forEach(bar => bar.clear());
+    this.healthBars.forEach((bar) => bar.clear());
+    this.skillBars.forEach((bar) => bar.clear());
 
     // すべてのユニットのバーを更新
-    this.allUnits.forEach(unit => {
+    this.allUnits.forEach((unit) => {
       const healthBar = this.healthBars.get(unit);
       const skillBar = this.skillBars.get(unit);
-      
+
       if (healthBar && skillBar) {
         this.drawHealthBar(healthBar, unit, 20);
         this.drawSkillBar(skillBar, unit, 40);
@@ -199,13 +199,13 @@ export class BattleScene extends Phaser.Scene {
     if (!this.debugText) return;
 
     let debugInfo = `Player: HP ${Math.floor(this.playerUnit.health)}/${this.playerUnit.maxHealth}, Skill: ${Math.floor(this.playerUnit.skillCooldown)}/${this.playerUnit.skillMaxCooldown}\n`;
-    
+
     // 敵の情報も表示
-    const enemies = this.allUnits.filter(unit => unit !== this.playerUnit);
+    const enemies = this.allUnits.filter((unit) => unit !== this.playerUnit);
     enemies.forEach((enemy, index) => {
       debugInfo += `Enemy ${index + 1}: HP ${Math.floor(enemy.health)}/${enemy.maxHealth}\n`;
     });
-    
+
     // ステージ情報の追加
     if (this.currentStage) {
       debugInfo += `Stage: ${this.currentStage.id} (${this.currentStage.name})\n`;
@@ -216,11 +216,11 @@ export class BattleScene extends Phaser.Scene {
 
   private startBattle(): void {
     this.battleActive = true;
-    
+
     if (this.currentStage) {
       this.currentStage.start();
     }
-    
+
     if (this.debugText) {
       this.debugText.setText('Battle Started');
     }
@@ -247,8 +247,8 @@ export class BattleScene extends Phaser.Scene {
     }
 
     // UIのクリーンアップ
-    this.healthBars.forEach(bar => bar.destroy());
-    this.skillBars.forEach(bar => bar.destroy());
+    this.healthBars.forEach((bar) => bar.destroy());
+    this.skillBars.forEach((bar) => bar.destroy());
     this.healthBars.clear();
     this.skillBars.clear();
 
