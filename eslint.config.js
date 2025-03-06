@@ -1,10 +1,11 @@
 // eslint.config.js
-import eslint from 'eslint';
-import tseslint from '@typescript-eslint/eslint-plugin';
-import tsparser from '@typescript-eslint/parser';
-import prettierConfig from 'eslint-config-prettier';
+const eslint = require('eslint');
+const tseslint = require('@typescript-eslint/eslint-plugin');
+const tsparser = require('@typescript-eslint/parser');
+const prettierConfig = require('eslint-config-prettier');
+const prettierPlugin = require('eslint-plugin-prettier');
 
-export default [
+module.exports = [
   {
     ignores: ['node_modules', 'dist', 'webpack.config.js']
   },
@@ -24,7 +25,7 @@ export default [
     },
     plugins: {
       '@typescript-eslint': tseslint,
-      prettier: require('eslint-plugin-prettier')
+      prettier: prettierPlugin
     },
     rules: {
       'prettier/prettier': 'error',
