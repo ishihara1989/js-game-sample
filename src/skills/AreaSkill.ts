@@ -5,9 +5,9 @@ import { Skill, SkillConfig, SkillEffectType, SkillTargetType } from './Skill';
  * 範囲攻撃スキル設定インターフェース
  */
 export interface AreaSkillConfig extends SkillConfig {
-  falloff?: boolean;         // 距離による減衰があるか
-  falloffRate?: number;      // 減衰率
-  maxTargets?: number;       // 最大対象数
+  falloff?: boolean; // 距離による減衰があるか
+  falloffRate?: number; // 減衰率
+  maxTargets?: number; // 最大対象数
 }
 
 /**
@@ -53,7 +53,7 @@ export class AreaSkill extends Skill {
     this.showAreaEffect(target.x, target.y);
 
     // 各ターゲットに効果を適用
-    targets.forEach(targetUnit => {
+    targets.forEach((targetUnit) => {
       this.applyEffectToTarget(targetUnit, target);
     });
 
@@ -71,17 +71,15 @@ export class AreaSkill extends Skill {
 
     // 全てのユニットを取得
     const allUnits = this.owner.battleScene.getAllUnits();
-    
+
     // 敵のみをフィルタリング
-    const enemies = allUnits.filter(unit => 
-      unit.isPlayer !== this.owner?.isPlayer && unit !== center
+    const enemies = allUnits.filter(
+      (unit) => unit.isPlayer !== this.owner?.isPlayer && unit !== center
     );
 
     // 範囲内の敵を抽出
-    const targetsInRange = enemies.filter(enemy => {
-      const distance = Phaser.Math.Distance.Between(
-        center.x, center.y, enemy.x, enemy.y
-      );
+    const targetsInRange = enemies.filter((enemy) => {
+      const distance = Phaser.Math.Distance.Between(center.x, center.y, enemy.x, enemy.y);
       return distance <= this.areaRadius;
     });
 
@@ -110,12 +108,10 @@ export class AreaSkill extends Skill {
 
     // 距離に基づく効果の減衰を計算
     let effectPower = this.power;
-    
+
     if (this.falloff) {
-      const distance = Phaser.Math.Distance.Between(
-        center.x, center.y, targetUnit.x, targetUnit.y
-      );
-      
+      const distance = Phaser.Math.Distance.Between(center.x, center.y, targetUnit.x, targetUnit.y);
+
       // 距離に応じて効果を減衰
       const distanceRatio = distance / this.areaRadius;
       effectPower = this.power * (1 - distanceRatio * this.falloffRate);
@@ -128,12 +124,12 @@ export class AreaSkill extends Skill {
         const damage = Math.max(1, effectPower - targetUnit.defense / 3);
         targetUnit.takeDamage(damage);
         break;
-        
+
       case SkillEffectType.HEAL:
         // 味方の場合は回復（未実装）
         // TODO: 回復機能の実装
         break;
-        
+
       case SkillEffectType.BUFF:
       case SkillEffectType.DEBUFF:
         // バフ/デバフ効果（未実装）
@@ -152,7 +148,7 @@ export class AreaSkill extends Skill {
    */
   private showAreaEffect(x: number, y: number): void {
     if (!this.owner || !this.owner.battleScene) return;
-    
+
     // エフェクト色を効果タイプに応じて設定
     let color = 0xffaa00;
     switch (this.effectType) {
@@ -169,7 +165,7 @@ export class AreaSkill extends Skill {
         color = 0xaa00ff;
         break;
     }
-    
+
     // 範囲エフェクトグラフィックを作成
     const areaEffect = this.owner.battleScene.add.graphics();
     areaEffect.fillStyle(color, 0.3);
@@ -178,7 +174,7 @@ export class AreaSkill extends Skill {
     areaEffect.strokeCircle(0, 0, this.areaRadius);
     areaEffect.setDepth(4);
     areaEffect.setPosition(x, y);
-    
+
     // エフェクトのアニメーション
     this.owner.battleScene.tweens.add({
       targets: areaEffect,
@@ -186,7 +182,7 @@ export class AreaSkill extends Skill {
       duration: 800,
       onComplete: () => {
         areaEffect.destroy();
-      }
+      },
     });
   }
 
@@ -197,7 +193,7 @@ export class AreaSkill extends Skill {
    */
   private showTargetEffect(x: number, y: number): void {
     if (!this.owner || !this.owner.battleScene) return;
-    
+
     // ターゲットエフェクト色
     let color = 0xffaa00;
     switch (this.effectType) {
@@ -214,14 +210,14 @@ export class AreaSkill extends Skill {
         color = 0xaa00ff;
         break;
     }
-    
+
     // ターゲットエフェクトを作成
     const targetEffect = this.owner.battleScene.add.graphics();
     targetEffect.fillStyle(color, 0.6);
     targetEffect.fillCircle(0, 0, 10);
     targetEffect.setDepth(6);
     targetEffect.setPosition(x, y);
-    
+
     // エフェクトのアニメーション
     this.owner.battleScene.tweens.add({
       targets: targetEffect,
@@ -230,7 +226,7 @@ export class AreaSkill extends Skill {
       duration: 400,
       onComplete: () => {
         targetEffect.destroy();
-      }
+      },
     });
   }
 }

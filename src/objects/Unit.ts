@@ -143,7 +143,7 @@ export class Unit extends Phaser.GameObjects.Container {
     }
 
     // 各スキルのクールダウン更新
-    this.skills.forEach(skill => skill.update(delta));
+    this.skills.forEach((skill) => skill.update(delta));
   }
 
   protected updateMovement(delta: number): void {
@@ -320,7 +320,7 @@ export class Unit extends Phaser.GameObjects.Container {
    * @returns 見つかったスキル、または undefined
    */
   getSkill(skillId: string): Skill | undefined {
-    return this.skills.find(skill => skill.id === skillId);
+    return this.skills.find((skill) => skill.id === skillId);
   }
 
   /**
@@ -367,10 +367,10 @@ export class Unit extends Phaser.GameObjects.Container {
   // 古いスキル使用メソッド（後方互換性のため残す）
   useSkill(): void {
     if (!this.target) return;
-    
+
     // 新しいスキルシステムを使用
     const success = this.useSkillOnTarget(this.target);
-    
+
     // 新しいスキルシステムが失敗した場合は古い処理を行う
     if (!success && this.skillCooldown >= this.skillMaxCooldown) {
       // スキルクールダウンをリセット

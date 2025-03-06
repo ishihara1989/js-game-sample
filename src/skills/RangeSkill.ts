@@ -6,7 +6,7 @@ import { Skill, SkillConfig, SkillEffectType, SkillTargetType } from './Skill';
  */
 export interface RangeSkillConfig extends SkillConfig {
   projectileSpeed?: number; // 発射物の速度
-  accuracy?: number;        // 命中率 (0.0 〜 1.0)
+  accuracy?: number; // 命中率 (0.0 〜 1.0)
 }
 
 /**
@@ -45,7 +45,7 @@ export class RangeSkill extends Skill {
 
     // 命中判定
     const hit = Math.random() <= this.accuracy;
-    
+
     if (hit) {
       // ダメージ計算（防御力の影響は小さめ）
       const damage = Math.max(1, this.power - target.defense / 4);
@@ -54,15 +54,21 @@ export class RangeSkill extends Skill {
       this.createProjectileEffect(target, () => {
         // コールバック：発射物が命中したときに実行
         target.takeDamage(damage);
-        console.log(`${this.owner?.name} hits ${target.name} with ${this.name} for ${damage} damage!`);
+        console.log(
+          `${this.owner?.name} hits ${target.name} with ${this.name} for ${damage} damage!`
+        );
       });
 
       return true;
     } else {
       // 発射物が外れた場合のエフェクト
-      this.createProjectileEffect(target, () => {
-        console.log(`${this.owner?.name}'s ${this.name} missed ${target.name}!`);
-      }, true);
+      this.createProjectileEffect(
+        target,
+        () => {
+          console.log(`${this.owner?.name}'s ${this.name} missed ${target.name}!`);
+        },
+        true
+      );
 
       return false;
     }
@@ -87,7 +93,7 @@ export class RangeSkill extends Skill {
     // 対象位置（外れる場合はランダムに少しずらす）
     let targetX = target.x;
     let targetY = target.y;
-    
+
     if (miss) {
       const missOffset = 40; // 外れる距離
       targetX += Phaser.Math.Between(-missOffset, missOffset);
@@ -106,13 +112,13 @@ export class RangeSkill extends Skill {
         if (!miss) {
           this.createHitEffect(targetX, targetY);
         }
-        
+
         // コールバック実行
         onHit();
-        
+
         // 発射物削除
         projectile.destroy();
-      }
+      },
     });
   }
 
@@ -124,15 +130,10 @@ export class RangeSkill extends Skill {
    */
   private calculateProjectileDuration(targetX: number, targetY: number): number {
     if (!this.owner) return 500;
-    
+
     // 距離に応じた時間を計算
-    const distance = Phaser.Math.Distance.Between(
-      this.owner.x, 
-      this.owner.y, 
-      targetX, 
-      targetY
-    );
-    
+    const distance = Phaser.Math.Distance.Between(this.owner.x, this.owner.y, targetX, targetY);
+
     return distance / this.projectileSpeed;
   }
 
@@ -143,14 +144,14 @@ export class RangeSkill extends Skill {
    */
   private createHitEffect(x: number, y: number): void {
     if (!this.owner || !this.owner.battleScene) return;
-    
+
     // 命中エフェクトグラフィックを作成
     const hitEffect = this.owner.battleScene.add.graphics();
     hitEffect.fillStyle(0xffaa00, 0.8);
     hitEffect.fillCircle(0, 0, 15);
     hitEffect.setDepth(6);
     hitEffect.setPosition(x, y);
-    
+
     // エフェクトのアニメーション
     this.owner.battleScene.tweens.add({
       targets: hitEffect,
@@ -159,7 +160,7 @@ export class RangeSkill extends Skill {
       duration: 300,
       onComplete: () => {
         hitEffect.destroy();
-      }
+      },
     });
   }
 }

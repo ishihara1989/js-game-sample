@@ -4,30 +4,16 @@
  */
 
 // 基本スキルクラスとインターフェースをエクスポート
-import { 
-  Skill, 
-  SkillConfig, 
-  SkillTargetType, 
-  SkillEffectType 
-} from './Skill';
+import { Skill, SkillConfig, SkillTargetType, SkillEffectType } from './Skill';
 
 // 近接攻撃スキル
-import { 
-  MeleeSkill, 
-  MeleeSkillConfig 
-} from './MeleeSkill';
+import { MeleeSkill, MeleeSkillConfig } from './MeleeSkill';
 
 // 遠距離攻撃スキル
-import { 
-  RangeSkill, 
-  RangeSkillConfig 
-} from './RangeSkill';
+import { RangeSkill, RangeSkillConfig } from './RangeSkill';
 
 // 範囲攻撃スキル
-import { 
-  AreaSkill, 
-  AreaSkillConfig 
-} from './AreaSkill';
+import { AreaSkill, AreaSkillConfig } from './AreaSkill';
 
 // 再エクスポート
 export {
@@ -40,7 +26,7 @@ export {
   RangeSkill,
   RangeSkillConfig,
   AreaSkill,
-  AreaSkillConfig
+  AreaSkillConfig,
 };
 
 /**

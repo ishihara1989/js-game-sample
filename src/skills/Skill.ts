@@ -6,34 +6,34 @@ import { Unit } from '../objects/Unit';
  */
 export enum SkillTargetType {
   SINGLE, // 単体対象
-  AREA,   // 範囲対象
-  SELF    // 自己対象
+  AREA, // 範囲対象
+  SELF, // 自己対象
 }
 
 /**
  * スキル効果タイプ
  */
 export enum SkillEffectType {
-  DAMAGE,      // ダメージ
-  HEAL,        // 回復
-  BUFF,        // バフ
-  DEBUFF       // デバフ
+  DAMAGE, // ダメージ
+  HEAL, // 回復
+  BUFF, // バフ
+  DEBUFF, // デバフ
 }
 
 /**
  * スキル基本設定インターフェース
  */
 export interface SkillConfig {
-  id: string;               // スキルID
-  name: string;             // スキル名
-  description: string;      // 説明文
-  cooldown: number;         // クールダウン時間（ミリ秒）
+  id: string; // スキルID
+  name: string; // スキル名
+  description: string; // 説明文
+  cooldown: number; // クールダウン時間（ミリ秒）
   targetType: SkillTargetType; // 対象タイプ
   effectType: SkillEffectType; // 効果タイプ
-  range: number;            // 射程距離
-  power: number;            // 基本効果量（ダメージ/回復量など）
-  areaRadius?: number;      // 範囲半径（範囲スキルの場合）
-  duration?: number;        // 効果持続時間（バフ/デバフの場合）
+  range: number; // 射程距離
+  power: number; // 基本効果量（ダメージ/回復量など）
+  areaRadius?: number; // 範囲半径（範囲スキルの場合）
+  duration?: number; // 効果持続時間（バフ/デバフの場合）
 }
 
 /**
@@ -125,12 +125,7 @@ export abstract class Skill {
     if (!this.owner) return false;
 
     // 射程内か確認
-    const distance = Phaser.Math.Distance.Between(
-      this.owner.x,
-      this.owner.y,
-      target.x,
-      target.y
-    );
+    const distance = Phaser.Math.Distance.Between(this.owner.x, this.owner.y, target.x, target.y);
 
     return distance <= this.range;
   }

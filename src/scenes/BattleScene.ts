@@ -114,19 +114,19 @@ export class BattleScene extends Phaser.Scene {
   // プレイヤーユニットに基本スキルを設定
   private setupPlayerSkills(): void {
     if (!this.playerUnit) return;
-    
+
     // 基本近接攻撃スキルを追加
     const meleeSkill = createBasicMeleeSkill();
     this.playerUnit.addSkill(meleeSkill);
-    
+
     // 基本遠距離攻撃スキルを追加
     const rangeSkill = createBasicRangeSkill();
     this.playerUnit.addSkill(rangeSkill);
-    
+
     // 基本範囲攻撃スキルを追加
     const areaSkill = createBasicAreaSkill();
     this.playerUnit.addSkill(areaSkill);
-    
+
     console.log('Player skills setup completed');
   }
 
@@ -164,7 +164,7 @@ export class BattleScene extends Phaser.Scene {
 
   // 全ユニットを取得するメソッド（スキルシステムで使用）
   getAllUnits(): Unit[] {
-    return this.allUnits.filter(unit => unit.health > 0);
+    return this.allUnits.filter((unit) => unit.health > 0);
   }
 
   // 全ユニットのUI更新
