@@ -1,6 +1,8 @@
 import Phaser from 'phaser';
 import { BattleScene } from '../scenes/BattleScene';
 import { Unit } from '../objects/Unit';
+import { EnemyUnit } from '../objects/EnemyUnit';
+import { EnemyFactory } from '../objects/enemies';
 import { StageConfig, EnemyConfig, StageStatus, StageResult } from '../types/StageTypes';
 
 /**
@@ -130,62 +132,11 @@ export class Stage {
 
   /**
    * 敵ユニットの生成
+   * 新しいエネミーシステムを活用するように修正
    */
   protected createEnemyUnits(): void {
-    // 基本的な敵ユニットの生成
+    // 敵設定に基づいて敵を生成
     this.enemyConfigs.forEach((enemyConfig, index) => {
-      // 敵の種類に基づいて適切な設定を行う
-      const texture = 'enemy'; // デフォルトのテクスチャ
-      let name = 'Enemy';
-      let color = 0xff5555;
-      let maxHealth = 80;
-      let attack = 8;
-      let defense = 3;
-      let speed = 1.5;
-
-      // 敵の種類ごとに設定をカスタマイズ
-      switch (enemyConfig.type) {
-        case 'goblin':
-          name = 'Goblin';
-          color = 0xff5555; // 赤
-          maxHealth = 40;
-          attack = 8;
-          defense = 3;
-          speed = 1.5;
-          break;
-        case 'orc':
-          name = 'Orc';
-          color = 0x00aa00; // 緑
-          maxHealth = 120;
-          attack = 12;
-          defense = 6;
-          speed = 1.2;
-          break;
-        case 'slime':
-          name = 'Slime';
-          color = 0x00aaff; // 青
-          maxHealth = 60;
-          attack = 5;
-          defense = 2;
-          speed = 1.8;
-          break;
-        // 他の敵タイプは必要に応じて追加
-      }
-
-      // 敵レベルに基づいてステータスを調整
-      const levelMultiplier = 1 + (enemyConfig.level - 1) * 0.2;
-      maxHealth = Math.floor(maxHealth * levelMultiplier);
-      attack = Math.floor(attack * levelMultiplier);
-      defense = Math.floor(defense * levelMultiplier);
-
-      // カスタムステータスの適用（設定されている場合）
-      if (enemyConfig.stats) {
-        if (enemyConfig.stats.maxHealth) maxHealth = enemyConfig.stats.maxHealth;
-        if (enemyConfig.stats.attack) attack = enemyConfig.stats.attack;
-        if (enemyConfig.stats.defense) defense = enemyConfig.stats.defense;
-        if (enemyConfig.stats.speed) speed = enemyConfig.stats.speed;
-      }
-
       // 位置の決定
       let x = 600; // デフォルト位置
       let y = 200 + index * 100;
@@ -195,20 +146,14 @@ export class Stage {
         y = enemyConfig.position.y;
       }
 
-      // 敵ユニットの作成
-      const enemyUnit = new Unit({
-        scene: this.scene,
+      // 新しいエネミーファクトリを使用して敵を生成
+      const enemyUnit = EnemyFactory.createEnemy(
+        this.scene,
+        enemyConfig.type,
         x,
         y,
-        texture,
-        name: `${name} Lv.${enemyConfig.level}`,
-        maxHealth,
-        attack,
-        defense,
-        speed,
-        isPlayer: false,
-        color,
-      });
+        enemyConfig.level
+      );
 
       // ユニットをリストに追加
       this.enemyUnits.push(enemyUnit);
@@ -223,7 +168,7 @@ export class Stage {
       this.playerUnit.setTarget(this.enemyUnits[0]);
 
       // 敵もプレイヤーをターゲットに設定
-      this.enemyUnits.forEach((enemy) => {
+      this.enemyUnits.forEach(enemy => {
         if (this.playerUnit) {
           // nullチェックを追加
           enemy.setTarget(this.playerUnit);
@@ -250,7 +195,7 @@ export class Stage {
     if (this.status !== StageStatus.IN_PROGRESS) return;
 
     // 敵ユニットの更新
-    this.enemyUnits.forEach((unit) => {
+    this.enemyUnits.forEach(unit => {
       if (unit.health > 0) {
         unit.update(delta);
       }
@@ -272,7 +217,7 @@ export class Stage {
     }
 
     // すべての敵のHPが0以下になったら勝利
-    const allEnemiesDefeated = this.enemyUnits.every((unit) => unit.health <= 0);
+    const allEnemiesDefeated = this.enemyUnits.every(unit => unit.health <= 0);
     if (allEnemiesDefeated) {
       this.status = StageStatus.VICTORY;
       this.onStageCleared();
@@ -282,6 +227,7 @@ export class Stage {
 
   /**
    * ステージクリア時の処理
+   * エネミーユニットから経験値とドロップアイテムを取得するように更新
    */
   protected onStageCleared(): void {
     console.log(`Stage ${this.config.id} cleared!`);
@@ -291,13 +237,29 @@ export class Stage {
       const victorUnit = this.playerUnit;
       const defeatedUnit = this.enemyUnits[0]; // 代表として最初の敵を設定
 
+      // エネミーから獲得できる経験値を計算
+      let totalExp = 0;
+      let dropItems: string[] = [];
+
+      this.enemyUnits.forEach(enemy => {
+        // 経験値を加算
+        if (enemy instanceof EnemyUnit) {
+          totalExp += enemy.getExpValue();
+
+          // ドロップアイテムを追加
+          const itemDrops = enemy.getDropItems();
+          dropItems = [...dropItems, ...itemDrops];
+        }
+      });
+
+      // ステージ基本報酬と敵からのドロップを合算
       const result = {
         victory: true,
         defeatedUnit,
         victorUnit,
-        exp: this.config.rewards.exp,
+        exp: this.config.rewards.exp + totalExp,
         gold: this.config.rewards.gold,
-        items: this.config.rewards.items || [],
+        items: [...(this.config.rewards.items || []), ...dropItems],
       };
 
       // 少し待ってからリザルト画面へ
@@ -316,7 +278,7 @@ export class Stage {
     // リザルトシーンに渡すデータを作成
     if (this.playerUnit && this.enemyUnits.length > 0) {
       // 生き残っている敵の中から勝者を選択
-      const aliveEnemies = this.enemyUnits.filter((unit) => unit.health > 0);
+      const aliveEnemies = this.enemyUnits.filter(unit => unit.health > 0);
       const victorUnit = aliveEnemies.length > 0 ? aliveEnemies[0] : this.enemyUnits[0];
 
       const result = {
@@ -340,7 +302,7 @@ export class Stage {
    */
   getResult(): StageResult {
     const timeTaken = this.startTime > 0 ? this.scene.time.now - this.startTime : 0;
-    const enemiesDefeated = this.enemyUnits.filter((unit) => unit.health <= 0).length;
+    const enemiesDefeated = this.enemyUnits.filter(unit => unit.health <= 0).length;
 
     return {
       stageId: this.config.id,
@@ -360,7 +322,7 @@ export class Stage {
     if (!this.playerUnit) return;
 
     // 生きている敵を探す
-    const nextEnemy = this.enemyUnits.find((unit) => unit.health > 0);
+    const nextEnemy = this.enemyUnits.find(unit => unit.health > 0);
     if (nextEnemy) {
       this.playerUnit.setTarget(nextEnemy);
     }
