@@ -139,6 +139,11 @@ export class BattleScene extends Phaser.Scene {
     this.createUnitUI(enemy);
   }
 
+  // 全ユニットを取得するメソッド（スキルシステムで使用）
+  getAllUnits(): Unit[] {
+    return this.allUnits.filter(unit => unit.health > 0);
+  }
+
   // 全ユニットのUI更新
   private updateAllUI(): void {
     // 全ユニットのバーをクリア
