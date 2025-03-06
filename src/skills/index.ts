@@ -4,7 +4,7 @@
  */
 
 // 基本スキルクラスとインターフェースをエクスポート
-export { 
+import { 
   Skill, 
   SkillConfig, 
   SkillTargetType, 
@@ -12,22 +12,36 @@ export {
 } from './Skill';
 
 // 近接攻撃スキル
-export { 
+import { 
   MeleeSkill, 
   MeleeSkillConfig 
 } from './MeleeSkill';
 
 // 遠距離攻撃スキル
-export { 
+import { 
   RangeSkill, 
   RangeSkillConfig 
 } from './RangeSkill';
 
 // 範囲攻撃スキル
-export { 
+import { 
   AreaSkill, 
   AreaSkillConfig 
 } from './AreaSkill';
+
+// 再エクスポート
+export {
+  Skill,
+  SkillConfig,
+  SkillTargetType,
+  SkillEffectType,
+  MeleeSkill,
+  MeleeSkillConfig,
+  RangeSkill,
+  RangeSkillConfig,
+  AreaSkill,
+  AreaSkillConfig
+};
 
 /**
  * 基本スキルのファクトリー関数
