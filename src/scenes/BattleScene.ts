@@ -3,6 +3,7 @@ import { Unit } from '../objects/Unit';
 import { BattleResult } from '../types/BattleTypes';
 import { Stage } from '../stages/Stage';
 import { StageFactory } from '../stages/StageFactory';
+import { StageStatus } from '../types/StageTypes';
 
 export class BattleScene extends Phaser.Scene {
   // ユニット関連
