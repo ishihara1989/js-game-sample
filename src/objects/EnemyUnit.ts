@@ -48,21 +48,27 @@ export class EnemyUnit extends Unit {
   // ドロップアイテム
   protected possibleDrops: DropItem[] = [];
 
+  // グラフィックス要素
+  protected unitCircle: Phaser.GameObjects.Graphics;
+
   /**
    * コンストラクタ
    * @param config エネミー設定
    */
   constructor(config: EnemyUnitConfig) {
+    // 基本ステータスの初期化
+    this.initializeBaseStats();
+    
     // レベルに応じてステータスを計算
     const { maxHealth, attack, defense, speed } = 
       config.customStats || 
       EnemyUnit.calculateStats(
         config.level,
         {
-          maxHealth: 50,
-          attack: 8,
-          defense: 4,
-          speed: 1.5
+          maxHealth: this.baseMaxHealth,
+          attack: this.baseAttack,
+          defense: this.baseDefense,
+          speed: this.baseSpeed
         }
       );
 
@@ -89,6 +95,18 @@ export class EnemyUnit extends Unit {
     
     // ドロップアイテムの初期化
     this.initializeDrops();
+    
+    // グラフィックス参照を取得
+    this.unitCircle = this.getAt(0) as Phaser.GameObjects.Graphics;
+  }
+
+  /**
+   * 基本ステータスの初期化
+   * サブクラスでオーバーライドして実装
+   */
+  protected initializeBaseStats(): void {
+    // デフォルト値はコンストラクタで設定済み
+    // サブクラスでオーバーライドして実装
   }
 
   /**
