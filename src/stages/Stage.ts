@@ -44,6 +44,13 @@ export class Stage {
   }
 
   /**
+   * 敵ユニットの取得
+   */
+  getEnemyUnits(): Unit[] {
+    return this.enemyUnits;
+  }
+
+  /**
    * 敵の種類と配置を設定
    * このメソッドはサブクラスでオーバーライドする
    */
@@ -198,7 +205,11 @@ export class Stage {
         color,
       });
 
+      // ユニットをリストに追加
       this.enemyUnits.push(enemyUnit);
+      
+      // バトルシーンに敵ユニットを登録
+      this.scene.addEnemyUnit(enemyUnit);
     });
 
     // プレイヤーとの関連付け
@@ -208,8 +219,7 @@ export class Stage {
 
       // 敵もプレイヤーをターゲットに設定
       this.enemyUnits.forEach((enemy) => {
-        if (this.playerUnit) {
-          // nullチェックを追加
+        if (this.playerUnit) {  // nullチェックを追加
           enemy.setTarget(this.playerUnit);
         }
       });
