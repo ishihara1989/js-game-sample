@@ -54,15 +54,12 @@ export class EnemyUnit extends Unit {
    */
   constructor(config: EnemyUnitConfig) {
     // 初期値を計算
-    const calculatedStats = EnemyUnit.calculateStats(
-      config.level,
-      {
-        maxHealth: 50,
-        attack: 8,
-        defense: 4,
-        speed: 1.5
-      }
-    );
+    const calculatedStats = EnemyUnit.calculateStats(config.level, {
+      maxHealth: 50,
+      attack: 8,
+      defense: 4,
+      speed: 1.5,
+    });
 
     // 優先的にカスタムステータスを使用し、ない場合は計算済みのステータスを使用
     const maxHealth = config.customStats?.maxHealth || calculatedStats.maxHealth;

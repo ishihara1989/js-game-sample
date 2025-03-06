@@ -117,7 +117,8 @@ export class Unit extends Phaser.GameObjects.Container {
     this.nameText.setPosition(this.x, this.y - 60);
   }
 
-  protected updateCooldowns(delta: number): void { // privateからprotectedに変更
+  protected updateCooldowns(delta: number): void {
+    // privateからprotectedに変更
     // 攻撃クールダウン
     if (this.attackCooldown > 0) {
       this.attackCooldown -= delta;
@@ -137,7 +138,8 @@ export class Unit extends Phaser.GameObjects.Container {
     }
   }
 
-  protected updateMovement(delta: number): void { // privateからprotectedに変更
+  protected updateMovement(delta: number): void {
+    // privateからprotectedに変更
     // 移動クールダウン中は移動しない
     if (this.moveCooldown > 0) return;
 
@@ -178,7 +180,8 @@ export class Unit extends Phaser.GameObjects.Container {
     }
   }
 
-  protected updateDirection(angle: number): void { // privateからprotectedに変更
+  protected updateDirection(angle: number): void {
+    // privateからprotectedに変更
     // 方向インディケーターがない場合は何もしない
     if (!this.directionIndicator) return;
 
@@ -241,7 +244,8 @@ export class Unit extends Phaser.GameObjects.Container {
     }
   }
 
-  protected moveToRandomPositionNearTarget(): void { // privateからprotectedに変更
+  protected moveToRandomPositionNearTarget(): void {
+    // privateからprotectedに変更
     if (!this.target) return;
 
     // ターゲット周辺のランダムな位置
