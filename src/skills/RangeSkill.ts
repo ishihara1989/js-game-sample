@@ -25,10 +25,10 @@ export class RangeSkill extends Skill {
    */
   constructor(config: RangeSkillConfig) {
     super(config);
-    
+
     this.accuracy = config.accuracy !== undefined ? config.accuracy : 0.9;
     this.projectileSpeed = config.projectileSpeed || 5;
-    
+
     // 遠距離スキルの場合、TargetTypeはSINGLEに強制
     if (this.targetType !== SkillTargetType.SINGLE) {
       console.warn(`RangeSkill ${this.name} had incorrect targetType. Forcing to SINGLE.`);
@@ -45,32 +45,32 @@ export class RangeSkill extends Skill {
 
     // 命中判定
     const hit = Math.random() <= this.accuracy;
-    
+
     // ミスした場合
     if (!hit) {
       console.warn(`${this.owner.name}'s ${this.name} missed ${target.name}!`);
-      
+
       // ミスしたときもエフェクトは表示（ただし、ダメージなし）
       if (this.owner.battleScene) {
         this.owner.battleScene.showSkillEffect(this.owner, target);
       }
-      
+
       return true; // スキル自体は使用したと見なす
     }
-    
+
     // ダメージ計算（防御効果は近接攻撃より小さい）
     const damage = Math.max(1, this.power + this.owner.attackPower * 0.8 - target.defense / 3);
-    
+
     // ターゲットにダメージを与える
     target.takeDamage(damage);
-    
+
     // エフェクト表示
     if (this.owner.battleScene) {
       this.owner.battleScene.showSkillEffect(this.owner, target);
     }
-    
+
     console.warn(`${this.owner.name} uses ${this.name} on ${target.name} for ${damage} damage!`);
-    
+
     return true;
   }
 }
