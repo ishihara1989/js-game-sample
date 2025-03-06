@@ -87,7 +87,7 @@ export class Unit extends Phaser.GameObjects.Container {
 
     // シーンに追加
     this.scene.add.existing(this);
-    
+
     // 名前が見えることを確認
     console.log(`Created unit ${this.name} at ${this.x},${this.y}. isPlayer: ${this.isPlayer}`);
   }
@@ -104,7 +104,7 @@ export class Unit extends Phaser.GameObjects.Container {
 
     // AI行動
     this.updateAI(delta);
-    
+
     // 名前テキストの位置更新
     this.nameText.setPosition(this.x, this.y - 60);
   }
@@ -345,12 +345,12 @@ export class Unit extends Phaser.GameObjects.Container {
     if (this.nameText) {
       this.nameText.destroy();
     }
-    
+
     // HPテキストを削除
     if (this.hpText) {
       this.hpText.destroy();
     }
-    
+
     // コンテナを削除
     this.destroy();
   }
