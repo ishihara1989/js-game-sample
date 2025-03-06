@@ -108,13 +108,13 @@ export class BattleScene extends Phaser.Scene {
   // ユニットのUI作成（プレイヤーと敵で共通）
   private createUnitUI(unit: Unit): void {
     console.log(`Creating UI for ${unit.name}, isPlayer: ${unit.isPlayer}`);
-    
+
     // HPバー
     this.healthBars.set(unit, this.add.graphics());
 
     // スキルゲージ
     this.skillBars.set(unit, this.add.graphics());
-    
+
     // 初回の描画
     const healthBar = this.healthBars.get(unit);
     const skillBar = this.skillBars.get(unit);
@@ -173,11 +173,11 @@ export class BattleScene extends Phaser.Scene {
 
     // HP値を表示
     if (!unit.hpText) {
-      unit.hpText = this.add.text(x, y - 15, '', { 
-        font: '12px Arial', 
+      unit.hpText = this.add.text(x, y - 15, '', {
+        font: '12px Arial',
         color: '#ffffff',
         stroke: '#000000',
-        strokeThickness: 2
+        strokeThickness: 2,
       });
     }
     unit.hpText.setText(`${Math.floor(unit.health)}/${unit.maxHealth}`);
@@ -258,17 +258,17 @@ export class BattleScene extends Phaser.Scene {
     }
 
     // すべてのユニットをクリーンアップ
-    this.allUnits.forEach(unit => {
+    this.allUnits.forEach((unit) => {
       // Unit側のcleanupメソッドを呼び出す
       unit.cleanup();
     });
-    
+
     // UIのクリーンアップ
     this.healthBars.forEach((bar) => bar.destroy());
     this.skillBars.forEach((bar) => bar.destroy());
     this.healthBars.clear();
     this.skillBars.clear();
-    
+
     // リストをクリア
     this.allUnits = [];
 
