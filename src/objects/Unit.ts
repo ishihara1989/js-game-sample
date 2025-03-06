@@ -78,7 +78,7 @@ export class Unit extends Phaser.GameObjects.Container {
       font: '14px Arial',
       color: '#ffffff',
       stroke: '#000000',
-      strokeThickness: 3
+      strokeThickness: 3,
     });
     this.nameText.setOrigin(0.5);
 
