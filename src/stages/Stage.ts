@@ -208,7 +208,8 @@ export class Stage {
 
       // 敵もプレイヤーをターゲットに設定
       this.enemyUnits.forEach((enemy) => {
-        if (this.playerUnit) {  // nullチェックを追加
+        if (this.playerUnit) {
+          // nullチェックを追加
           enemy.setTarget(this.playerUnit);
         }
       });
