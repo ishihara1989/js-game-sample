@@ -3,36 +3,42 @@ import { Unit } from '../objects/Unit';
 import { BattleResult } from '../types/BattleTypes';
 import { Stage } from '../stages/Stage';
 import { StageFactory } from '../stages/StageFactory';
-// Remove unused import
-// import { StageStatus } from '../types/StageTypes';
 import { createBasicMeleeSkill, createBasicRangeSkill, createBasicAreaSkill } from '../skills';
+import { BattleUIRenderer } from '../renderers/BattleUIRenderer';
+import { EffectRenderer } from '../renderers/EffectRenderer';
 
 export class BattleScene extends Phaser.Scene {
   // ユニット関連
-  private playerUnit!: Unit;
-  private allUnits: Unit[] = [];
+  public playerUnit!: Unit;
+  public allUnits: Unit[] = [];
 
   // バトル状態管理
-  private battleActive: boolean = false;
-  private battleResult: BattleResult | null = null;
+  public battleActive: boolean = false;
+  public battleResult: BattleResult | null = null;
+  
+  // バトル時間
+  public battleTime: number = 0;
 
-  // UI要素
-  private healthBars: Map<Unit, Phaser.GameObjects.Graphics> = new Map();
-  private skillBars: Map<Unit, Phaser.GameObjects.Graphics> = new Map();
-  private expBar: Phaser.GameObjects.Graphics | null = null; // プレイヤーのEXPバー
+  // UI要素（BattleUIRendererに移行予定）
+  public healthBars: Map<Unit, Phaser.GameObjects.Graphics> = new Map();
+  public skillBars: Map<Unit, Phaser.GameObjects.Graphics> = new Map();
+  public expBar: Phaser.GameObjects.Graphics | null = null;
 
   // デバッグテキスト
-  private debugText!: Phaser.GameObjects.Text;
+  public debugText!: Phaser.GameObjects.Text;
 
   // ステージ関連
-  private stageId: string = '1-1'; // デフォルトステージ
-  private currentStage: Stage | null = null;
+  public stageId: string = '1-1';
+  public currentStage: Stage | null = null;
+
+  // レンダラー
+  private uiRenderer: BattleUIRenderer | null = null;
+  private effectRenderer: EffectRenderer | null = null;
 
   constructor() {
     super('BattleScene');
   }
 
-  // Changed type from 'any' to more explicit type
   init(data: { stageId?: string }): void {
     // 受け取ったパラメータをチェック
     if (data && data.stageId) {
@@ -45,20 +51,39 @@ export class BattleScene extends Phaser.Scene {
 
     // バトル状態をリセット
     this.battleActive = false;
+    this.battleTime = 0;
     this.battleResult = null;
     this.allUnits = [];
     this.healthBars.clear();
     this.skillBars.clear();
     this.expBar = null;
+    
+    // レンダラーを初期化
+    if (this.uiRenderer) {
+      this.uiRenderer.destroy();
+      this.uiRenderer = null;
+    }
+    
+    if (this.effectRenderer) {
+      this.effectRenderer.destroy();
+      this.effectRenderer = null;
+    }
   }
 
   create(): void {
+    // レンダラーの作成
+    this.uiRenderer = new BattleUIRenderer(this);
+    this.effectRenderer = new EffectRenderer(this);
+    
+    // レンダラーの初期化
+    this.uiRenderer.initialize();
+    this.effectRenderer.initialize();
+    
     // デバッグテキスト（最初に作成）
     this.debugText = this.add.text(10, 10, 'Battle Starting...', {
       font: '16px Arial',
       color: '#ffffff',
     });
-    // デバッグテキストは最前面に表示
     this.debugText.setDepth(100);
 
     // プレイヤーユニットの作成（左側）
@@ -107,6 +132,9 @@ export class BattleScene extends Phaser.Scene {
   update(time: number, delta: number): void {
     if (!this.battleActive) return;
 
+    // バトル時間の更新
+    this.battleTime += delta;
+
     // 全ユニットの更新
     this.allUnits.forEach((unit) => {
       if (unit.health > 0) {
@@ -121,6 +149,17 @@ export class BattleScene extends Phaser.Scene {
 
     // UIの更新
     this.updateAllUI();
+    
+    // レンダラーの更新
+    if (this.uiRenderer) {
+      this.uiRenderer.update(delta);
+      this.uiRenderer.render();
+    }
+    
+    if (this.effectRenderer) {
+      this.effectRenderer.update(delta);
+      this.effectRenderer.render();
+    }
 
     // デバッグ情報の更新
     this.updateDebugText();
@@ -354,19 +393,7 @@ export class BattleScene extends Phaser.Scene {
     graphics.lineStyle(1, 0xffffff, 0.8);
     graphics.strokeRect(x, y, width, height);
 
-    // HP値を表示
-    if (!unit.hpText) {
-      unit.hpText = this.add.text(x, y - 15, '', {
-        font: '12px Arial',
-        color: '#ffffff',
-        stroke: '#000000',
-        strokeThickness: 2,
-      });
-      // HP値テキストに高い深度を設定
-      unit.hpText.setDepth(11);
-    }
-    unit.hpText.setText(`${Math.floor(unit.health)}/${unit.maxHealth}`);
-    unit.hpText.setPosition(x + width / 2 - unit.hpText.width / 2, y - 15);
+    // HP値は各ユニットのレンダラーが描画するため、ここでは何もしない
   }
 
   private drawSkillBar(graphics: Phaser.GameObjects.Graphics, unit: Unit, yOffset: number): void {
@@ -425,6 +452,11 @@ export class BattleScene extends Phaser.Scene {
     if (this.debugText) {
       this.debugText.setText('Battle Started');
     }
+    
+    // バトル開始メッセージの表示
+    if (this.uiRenderer) {
+      this.uiRenderer.showBattleStartMessage();
+    }
   }
 
   /**
@@ -434,6 +466,11 @@ export class BattleScene extends Phaser.Scene {
   endBattle(result: BattleResult): void {
     this.battleActive = false;
     this.battleResult = result;
+
+    // バトル終了メッセージの表示
+    if (this.uiRenderer) {
+      this.uiRenderer.showBattleEndMessage(result.victory);
+    }
 
     // バトル結果のデバッグ表示
     if (this.battleResult && this.debugText) {
@@ -465,6 +502,17 @@ export class BattleScene extends Phaser.Scene {
     if (expText) {
       expText.destroy();
     }
+    
+    // レンダラーのクリーンアップ
+    if (this.uiRenderer) {
+      this.uiRenderer.destroy();
+      this.uiRenderer = null;
+    }
+    
+    if (this.effectRenderer) {
+      this.effectRenderer.destroy();
+      this.effectRenderer = null;
+    }
 
     // リストをクリア
     this.allUnits = [];
@@ -474,21 +522,27 @@ export class BattleScene extends Phaser.Scene {
       this.currentStage.cleanup();
     }
 
-    // リザルト画面へ
-    this.scene.start('ResultScene', { result: this.battleResult });
+    // リザルト画面へ（少し遅延して表示）
+    this.time.delayedCall(2000, () => {
+      this.scene.start('ResultScene', { result: this.battleResult });
+    });
   }
 
   // 攻撃エフェクトを表示するメソッド（Unitクラスから呼び出される）
   showAttackEffect(attacker: Unit, target: Unit): void {
+    // effectRendererが利用可能であれば、そちらに処理を委譲
+    if (this.effectRenderer) {
+      this.effectRenderer.showAttackEffect(attacker, target);
+      return;
+    }
+    
+    // 後方互換性のための実装（effectRendererがない場合）
     const midX = (attacker.x + target.x) / 2;
     const midY = (attacker.y + target.y) / 2;
 
-    // シンプルなエフェクト
     const attackEffect = this.add.circle(midX, midY, 15, attacker.isPlayer ? 0x6666ff : 0xff6666);
-    // エフェクトに高い深度を設定
     attackEffect.setDepth(20);
 
-    // エフェクトのアニメーション
     this.tweens.add({
       targets: attackEffect,
       scale: { from: 0.5, to: 1.5 },
@@ -502,24 +556,19 @@ export class BattleScene extends Phaser.Scene {
 
   // スキルエフェクトを表示するメソッド（Unitクラスから呼び出される）
   showSkillEffect(caster: Unit, target: Unit): void {
-    // スキルエフェクトの始点
+    // effectRendererが利用可能であれば、そちらに処理を委譲
+    if (this.effectRenderer) {
+      this.effectRenderer.showSkillEffect(caster, target);
+      return;
+    }
+    
+    // 後方互換性のための実装（effectRendererがない場合）
     const startX = caster.x;
     const startY = caster.y;
-
-    // スキルエフェクトの色（プレイヤーは青系、敵は赤系）
     const color = caster.isPlayer ? 0x00aaff : 0xff5500;
 
-    // スキルのグラフィック
-    const skillGraphics = this.add.graphics();
-    // スキルグラフィックに高い深度を設定
-    skillGraphics.setDepth(20);
-    skillGraphics.fillStyle(color, 0.8);
-
-    // プレイヤーと敵で異なるスキルエフェクト
     if (caster.isPlayer) {
-      // プレイヤースキル: 魔法の弾
       const projectile = this.add.circle(startX, startY, 10, color);
-      // 投射物に高い深度を設定
       projectile.setDepth(20);
 
       this.tweens.add({
@@ -528,9 +577,7 @@ export class BattleScene extends Phaser.Scene {
         y: target.y,
         duration: 500,
         onComplete: () => {
-          // 着弾時の爆発エフェクト
           const explosion = this.add.circle(target.x, target.y, 5, color);
-          // 爆発エフェクトに高い深度を設定
           explosion.setDepth(20);
 
           this.tweens.add({
@@ -546,9 +593,7 @@ export class BattleScene extends Phaser.Scene {
         },
       });
     } else {
-      // 敵スキル: 渦巻き状のエフェクト
       const swirl = this.add.graphics();
-      // 渦巻きエフェクトに高い深度を設定
       swirl.setDepth(20);
       swirl.fillStyle(color, 0.7);
 
@@ -556,7 +601,6 @@ export class BattleScene extends Phaser.Scene {
       let scale = 0;
       let alpha = 1;
 
-      // 渦巻きエフェクトのアニメーション
       const animateSwirlEffect = () => {
         swirl.clear();
         if (alpha <= 0) {

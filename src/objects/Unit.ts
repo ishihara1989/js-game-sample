@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { BattleScene } from '../scenes/BattleScene';
 import { Skill } from '../skills/Skill';
+import { UnitRenderer } from '../renderers/UnitRenderer';
 
 interface UnitConfig {
   scene: BattleScene;
@@ -31,7 +32,7 @@ export class Unit extends Phaser.GameObjects.Container {
   readonly isPlayer: boolean;
   readonly name: string;
   readonly maxHealth: number;
-  readonly attackPower: number; // attackからattackPowerに変更
+  readonly attackPower: number;
   readonly defense: number;
   readonly speed: number;
 
@@ -39,40 +40,35 @@ export class Unit extends Phaser.GameObjects.Container {
   health: number;
   skillCooldown: number = 0;
   readonly skillMaxCooldown: number = 100;
-  protected attackCooldown: number = 0; // privateからprotectedに変更
+  protected attackCooldown: number = 0;
   readonly attackCooldownMax: number = 1500; // ミリ秒
-  protected moveCooldown: number = 0; // privateからprotectedに変更
+  protected moveCooldown: number = 0;
   readonly moveCooldownMax: number = 500; // ミリ秒
 
   // レベルと経験値関連
   protected level: number = 1;
   protected experience: number = 0;
   protected requiredExperience: number = 100; // レベル2になるための必要経験値
-  // レベルごとに解放されるスキル定義
   protected skillUnlocks: SkillUnlock[] = [];
 
   // 戦闘報酬関連
   protected expValue: number = 0; // 倒した時に得られる経験値
 
   // 参照
-  protected target: Unit | null = null; // privateからprotectedに変更
-  public battleScene: BattleScene; // protectedからpublicに変更（スキルから参照できるように）
-
-  // 見た目関連
-  protected unitCircle: Phaser.GameObjects.Graphics; // privateからprotectedに変更
-  protected directionIndicator: Phaser.GameObjects.Graphics; // privateからprotectedに変更
-  hpText?: Phaser.GameObjects.Text;
-  nameText: Phaser.GameObjects.Text;
-  levelText?: Phaser.GameObjects.Text; // レベル表示用テキスト
+  protected target: Unit | null = null;
+  public battleScene: BattleScene;
 
   // 移動関連
-  protected movementTarget: Phaser.Math.Vector2 | null = null; // privateからprotectedに変更
-  protected wanderTimer: number = 0; // privateからprotectedに変更
-  protected readonly wanderInterval: number = 3000; // 3秒ごとにランダム移動 // privateからprotectedに変更
+  protected movementTarget: Phaser.Math.Vector2 | null = null;
+  protected wanderTimer: number = 0;
+  protected readonly wanderInterval: number = 3000; // 3秒ごとにランダム移動
 
   // スキル関連
   protected skills: Skill[] = []; // スキル配列
   protected activeSkillIndex: number = 0; // 現在選択中のスキルインデックス
+
+  // 描画コンポーネント
+  protected renderer: UnitRenderer;
 
   constructor(config: UnitConfig) {
     super(config.scene, config.x, config.y);
@@ -82,7 +78,7 @@ export class Unit extends Phaser.GameObjects.Container {
     this.name = config.name;
     this.maxHealth = config.maxHealth;
     this.health = config.maxHealth;
-    this.attackPower = config.attack; // attackからattackPowerに変更
+    this.attackPower = config.attack;
     this.defense = config.defense;
     this.speed = config.speed;
     this.battleScene = config.scene as BattleScene;
@@ -95,47 +91,12 @@ export class Unit extends Phaser.GameObjects.Container {
     // コンテナ自体に深度を設定
     this.setDepth(5);
 
-    // グラフィックの作成
-    this.unitCircle = this.scene.add.graphics();
-    this.unitCircle.fillStyle(config.color, 1);
-    this.unitCircle.fillCircle(0, 0, 20);
-    this.unitCircle.lineStyle(2, 0xffffff,
- 0.8);
-    this.unitCircle.strokeCircle(0, 0, 20);
-
-    // 向きを示す三角形
-    this.directionIndicator = this.scene.add.graphics();
-    this.directionIndicator.fillStyle(0xffffff, 1);
-    this.directionIndicator.fillTriangle(0, -30, -10, -15, 10, -15);
-
-    // シーンに直接名前を表示（コンテナ外）
-    this.nameText = this.scene.add.text(this.x, this.y - 60, this.name, {
-      font: '14px Arial',
-      color: '#ffffff',
-      stroke: '#000000',
-      strokeThickness: 3,
-    });
-    this.nameText.setOrigin(0.5);
-    // 名前テキストに高い深度を設定
-    this.nameText.setDepth(10);
-    
-    // レベル表示テキスト
-    this.levelText = this.scene.add.text(this.x, this.y - 45, `Lv.${this.level}`, {
-      font: '12px Arial',
-      color: '#ffff00',
-      stroke: '#000000',
-      strokeThickness: 2,
-    });
-    this.levelText.setOrigin(0.5);
-    this.levelText.setDepth(10);
-
-    // コンテナには円とインディケーターだけ追加
-    this.add([this.unitCircle, this.directionIndicator]);
-
     // シーンに追加
     this.scene.add.existing(this);
 
-    // 名前が見えることを確認（console.logから警告許可されているconsole.warnに変更）
+    // レンダラーの作成（描画を担当するコンポーネント）
+    this.renderer = new UnitRenderer(this, this.scene, config.color);
+
     console.warn(`Created unit ${this.name} at ${this.x},${this.y}. isPlayer: ${this.isPlayer}`);
   }
 
@@ -152,17 +113,14 @@ export class Unit extends Phaser.GameObjects.Container {
     // AI行動
     this.updateAI(delta);
 
-    // 名前テキストの位置更新
-    this.nameText.setPosition(this.x, this.y - 60);
+    // レンダラーの更新
+    this.renderer.update(delta);
     
-    // レベルテキストの位置更新
-    if (this.levelText) {
-      this.levelText.setPosition(this.x, this.y - 45);
-    }
+    // レンダラーの描画
+    this.renderer.render();
   }
 
   protected updateCooldowns(delta: number): void {
-    // privateからprotectedに変更
     // 攻撃クールダウン
     if (this.attackCooldown > 0) {
       this.attackCooldown -= delta;
@@ -186,7 +144,6 @@ export class Unit extends Phaser.GameObjects.Container {
   }
 
   protected updateMovement(_delta: number): void {
-    // privateからprotectedに変更
     // 移動クールダウン中は移動しない
     if (this.moveCooldown > 0) return;
 
@@ -216,41 +173,13 @@ export class Unit extends Phaser.GameObjects.Container {
       // 移動速度に基づいて位置を更新
       this.x += Math.cos(angle) * this.speed;
       this.y += Math.sin(angle) * this.speed;
-
-      // 向きを更新
-      this.updateDirection(angle);
     } else if (this.target) {
       // ターゲットがnullでないことを確認
-      // ターゲットの方向を向く
-      const angle = Phaser.Math.Angle.Between(this.x, this.y, this.target.x, this.target.y);
-      this.updateDirection(angle);
+      // ターゲットの方向を向く（レンダラーが方向を描画）
     }
   }
 
-  protected updateDirection(angle: number): void {
-    // privateからprotectedに変更
-    // 方向インディケーターがない場合は何もしない
-    if (!this.directionIndicator) return;
-
-    // 方向インディケーターの回転
-    this.directionIndicator.clear();
-    this.directionIndicator.fillStyle(0xffffff, 1);
-
-    // 回転した三角形を描画
-    const x1 = Math.cos(angle) * 30;
-    const y1 = Math.sin(angle) * 30;
-    const x2 = Math.cos(angle + Math.PI * 0.8) * 15;
-    const y2 = Math.sin(angle + Math.PI * 0.8) * 15;
-    const x3 = Math.cos(angle - Math.PI * 0.8) * 15;
-    const y3 = Math.sin(angle - Math.PI * 0.8) * 15;
-
-    this.directionIndicator.fillTriangle(x1, y1, x2, y2, x3, y3);
-  }
-
-  // privateメソッドをprotectedに変更し、サブクラスでオーバーライドできるようにする
   protected updateAI(_delta: number): void {
-    // 'delta' parameter was renamed to '_delta' to indicate unused parameter intentionally
-
     // プレイヤーユニットは手動制御を想定（現在はAIで自動行動）
     if (!this.target) return; // ターゲットがない場合は処理しない
 
@@ -302,7 +231,6 @@ export class Unit extends Phaser.GameObjects.Container {
   }
 
   protected moveToRandomPositionNearTarget(): void {
-    // privateからprotectedに変更
     if (!this.target) return;
 
     // ターゲット周辺のランダムな位置
@@ -322,7 +250,7 @@ export class Unit extends Phaser.GameObjects.Container {
     this.moveCooldown = this.moveCooldownMax;
   }
 
-  // 通常攻撃（attackからperformAttackに変更）
+  // 通常攻撃
   performAttack(target: Unit): void {
     if (!target) return; // ターゲットがない場合は何もしない
 
@@ -438,39 +366,9 @@ export class Unit extends Phaser.GameObjects.Container {
     this.health -= amount;
     if (this.health < 0) this.health = 0;
 
-    // ダメージテキスト表示
-    this.showDamageText(amount);
-
-    // ダメージを受けたときの視覚効果
-    this.scene.tweens.add({
-      targets: this,
-      alpha: 0.5,
-      yoyo: true,
-      duration: 100,
-      repeat: 1,
-    });
-  }
-
-  // ダメージテキストを表示
-  private showDamageText(amount: number): void {
-    const damageText = this.scene.add.text(this.x, this.y - 20, `-${Math.floor(amount)}`, {
-      font: 'bold 16px Arial',
-      color: '#ff0000',
-    });
-    damageText.setOrigin(0.5);
-    // ダメージテキストに高い深度を設定
-    damageText.setDepth(15);
-
-    // テキストを上に浮かせながらフェードアウト
-    this.scene.tweens.add({
-      targets: damageText,
-      y: damageText.y - 30,
-      alpha: 0,
-      duration: 1000,
-      onComplete: () => {
-        damageText.destroy();
-      },
-    });
+    // レンダラーにダメージエフェクト表示を依頼
+    this.renderer.showDamageText(amount);
+    this.renderer.flashUnit();
   }
 
   // ターゲットを設定
@@ -503,8 +401,8 @@ export class Unit extends Phaser.GameObjects.Container {
     // 経験値獲得メッセージ
     console.warn(`${this.name} gained ${exp} experience points.`);
     
-    // 獲得経験値を表示
-    this.showExpText(exp);
+    // レンダラーに経験値獲得テキストの表示を依頼
+    this.renderer.showExpText(exp);
 
     // レベルアップのチェック
     if (this.experience >= this.requiredExperience) {
@@ -513,30 +411,6 @@ export class Unit extends Phaser.GameObjects.Container {
     }
 
     return false;
-  }
-
-  /**
-   * 経験値獲得テキストを表示
-   */
-  private showExpText(exp: number): void {
-    // 表示位置をダメージテキストとは別の場所に
-    const expText = this.scene.add.text(this.x, this.y - 40, `+${exp} EXP`, {
-      font: 'bold 14px Arial',
-      color: '#00ff00',
-    });
-    expText.setOrigin(0.5);
-    expText.setDepth(15);
-
-    // テキストを上に浮かせながらフェードアウト
-    this.scene.tweens.add({
-      targets: expText,
-      y: expText.y - 30,
-      alpha: 0,
-      duration: 1500,
-      onComplete: () => {
-        expText.destroy();
-      },
-    });
   }
 
   /**
@@ -552,62 +426,13 @@ export class Unit extends Phaser.GameObjects.Container {
     // 次のレベルに必要な経験値を更新（レベルが上がるごとに必要経験値が増加）
     this.requiredExperience = Math.floor(this.requiredExperience * 1.5);
     
-    // レベルテキストを更新
-    if (this.levelText) {
-      this.levelText.setText(`Lv.${this.level}`);
-    }
-    
-    // レベルアップエフェクト表示
-    this.showLevelUpEffect();
+    // レンダラーにレベルアップエフェクト表示を依頼
+    this.renderer.showLevelUpEffect();
     
     console.warn(`${this.name} leveled up to ${this.level}!`);
     
     // レベルアップによるスキル解放チェック
     this.checkSkillUnlocks();
-  }
-
-  /**
-   * レベルアップエフェクトを表示
-   */
-  private showLevelUpEffect(): void {
-    // レベルアップテキスト
-    const levelUpText = this.scene.add.text(this.x, this.y - 70, 'LEVEL UP!', {
-      font: 'bold 18px Arial',
-      color: '#ffff00',
-      stroke: '#000000',
-      strokeThickness: 4,
-    });
-    levelUpText.setOrigin(0.5);
-    levelUpText.setDepth(20);
-    
-    // 輝くエフェクト（グラフィックス）
-    const glowEffect = this.scene.add.graphics();
-    glowEffect.fillStyle(0xffff00, 0.3);
-    glowEffect.fillCircle(this.x, this.y, 50);
-    glowEffect.setDepth(3);
-    
-    // エフェクトアニメーション
-    this.scene.tweens.add({
-      targets: [glowEffect],
-      alpha: 0,
-      scale: 2,
-      duration: 1000,
-      onComplete: () => {
-        glowEffect.destroy();
-      },
-    });
-    
-    // テキストアニメーション（上に移動しながらフェードアウト）
-    this.scene.tweens.add({
-      targets: levelUpText,
-      y: levelUpText.y - 40,
-      alpha: 0,
-      duration: 1500,
-      delay: 500,
-      onComplete: () => {
-        levelUpText.destroy();
-      },
-    });
   }
 
   /**
@@ -624,66 +449,14 @@ export class Unit extends Phaser.GameObjects.Container {
         const newSkill = unlockInfo.skillFactory();
         this.addSkill(newSkill);
         
-        // 解放メッセージがあれば表示
+        // レンダラーにスキル解放メッセージの表示を依頼
         if (unlockInfo.message) {
-          this.showSkillUnlockMessage(newSkill.name, unlockInfo.message);
+          this.renderer.showSkillUnlockMessage(newSkill.name, unlockInfo.message);
         } else {
-          this.showSkillUnlockMessage(newSkill.name);
+          this.renderer.showSkillUnlockMessage(newSkill.name);
         }
       });
     }
-  }
-  
-  /**
-   * スキル解放メッセージの表示
-   */
-  private showSkillUnlockMessage(skillName: string, message?: string): void {
-    // スキル解放メッセージの表示（コンソール）
-    console.warn(`${this.name} unlocked new skill: ${skillName}`);
-    
-    // スキル解放テキスト（画面上）
-    const unlockText = this.scene.add.text(this.x, this.y - 90, `New Skill: ${skillName}!`, {
-      font: 'bold 16px Arial',
-      color: '#00ffff',
-      stroke: '#000000',
-      strokeThickness: 3,
-    });
-    unlockText.setOrigin(0.5);
-    unlockText.setDepth(20);
-    
-    // 詳細メッセージ（指定があれば）
-    if (message) {
-      const detailText = this.scene.add.text(this.x, this.y - 70, message, {
-        font: '12px Arial',
-        color: '#ffffff',
-        stroke: '#000000',
-        strokeThickness: 2,
-      });
-      detailText.setOrigin(0.5);
-      detailText.setDepth(20);
-      
-      // 詳細メッセージのアニメーション
-      this.scene.tweens.add({
-        targets: detailText,
-        alpha: 0,
-        duration: 2000,
-        delay: 2000,
-        onComplete: () => {
-          detailText.destroy();
-        },
-      });
-    }
-    
-    // テキストアニメーション
-    this.scene.tweens.add({
-      targets: unlockText,
-      alpha: 0,
-      duration: 2000,
-      delay: 1500,
-      onComplete: () => {
-        unlockText.destroy();
-      },
-    });
   }
 
   /**
@@ -706,20 +479,8 @@ export class Unit extends Phaser.GameObjects.Container {
 
   // ユニットのクリーンアップ
   cleanup(): void {
-    // 名前テキストを削除
-    if (this.nameText) {
-      this.nameText.destroy();
-    }
-
-    // HPテキストを削除
-    if (this.hpText) {
-      this.hpText.destroy();
-    }
-    
-    // レベルテキストを削除
-    if (this.levelText) {
-      this.levelText.destroy();
-    }
+    // レンダラーのクリーンアップ
+    this.renderer.destroy();
 
     // コンテナを削除
     this.destroy();

@@ -1,8 +1,7 @@
-// Remove the Phaser import as it's not used directly in this file
-// import Phaser from 'phaser';
 import { BattleScene } from '../scenes/BattleScene';
 import { Unit, SkillUnlock } from './Unit';
 import { createBasicMeleeSkill, createPowerMeleeSkill, createBasicRangeSkill, createPrecisionRangeSkill, createBasicAreaSkill, createLargeAreaSkill } from '../skills';
+import { EnemyRenderer } from '../renderers/EnemyRenderer';
 
 /**
  * エネミーユニットの設定インターフェース
@@ -48,6 +47,9 @@ export class EnemyUnit extends Unit {
 
   // ドロップアイテム
   protected possibleDrops: DropItem[] = [];
+  
+  // 敵用レンダラー
+  protected enemyRenderer: EnemyRenderer | null = null;
 
   /**
    * コンストラクタ
@@ -83,6 +85,11 @@ export class EnemyUnit extends Unit {
       color: config.color,
       level: config.level,
     });
+
+    // 敵用レンダラーが作成されているか確認
+    if (this.renderer instanceof EnemyRenderer) {
+      this.enemyRenderer = this.renderer;
+    }
 
     // 基本ステータスの初期化（サブクラスでオーバーライド）
     this.initializeBaseStats();
@@ -206,6 +213,11 @@ export class EnemyUnit extends Unit {
       // 乱数を生成して確率と比較
       if (Math.random() <= item.dropRate) {
         drops.push(item.id);
+        
+        // ドロップ時にレンダラーを使ってエフェクト表示
+        if (this.enemyRenderer) {
+          this.enemyRenderer.showItemDrop(item.id, item.name);
+        }
       }
     });
 
@@ -226,11 +238,23 @@ export class EnemyUnit extends Unit {
    * @param delta 前フレームからの経過時間
    */
   protected updateAI(_delta: number): void {
-    // Renamed 'delta' to '_delta' to match the unused variable naming pattern
-
     // 基本的な行動パターン（親クラスのAIを使用）
     super.updateAI(_delta);
 
     // サブクラスでオーバーライドして拡張可能
+  }
+  
+  /**
+   * ユニットのクリーンアップ（オーバーライド）
+   * 死亡エフェクトを表示してから親クラスのクリーンアップを呼び出す
+   */
+  cleanup(): void {
+    // 死亡エフェクトを表示
+    if (this.enemyRenderer) {
+      this.enemyRenderer.showDeathEffect();
+    }
+    
+    // 親クラスのクリーンアップを呼び出す
+    super.cleanup();
   }
 }

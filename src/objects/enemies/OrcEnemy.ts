@@ -1,6 +1,7 @@
 import { BattleScene } from '../../scenes/BattleScene';
-import { EnemyUnit /* DropItem */ } from '../EnemyUnit';
-import { Unit } from '../Unit'; // Unit型をインポート
+import { EnemyUnit } from '../EnemyUnit';
+import { Unit } from '../Unit'; 
+import { EnemyRenderer } from '../../renderers/EnemyRenderer';
 
 /**
  * オークエネミークラス
@@ -10,6 +11,9 @@ export class OrcEnemy extends EnemyUnit {
   private enrageThreshold: number = 0.3; // 30%以下のHPでエンレイジする
   private enraged: boolean = false;
   private originalAttackPower: number = 0;
+  
+  // レンダラー参照を独自に保持（型を特定するため）
+  private orcRenderer: EnemyRenderer | null = null;
 
   constructor(scene: BattleScene, x: number, y: number, level: number) {
     super({
@@ -24,6 +28,11 @@ export class OrcEnemy extends EnemyUnit {
 
     // 元の攻撃力を記録
     this.originalAttackPower = this.attackPower;
+    
+    // レンダラーを取得して保持（レンダラーはUnit.tsのコンストラクタで作成される）
+    if (this.renderer instanceof EnemyRenderer) {
+      this.orcRenderer = this.renderer;
+    }
   }
 
   /**
@@ -109,13 +118,9 @@ export class OrcEnemy extends EnemyUnit {
       duration: 200,
       repeat: 2,
       onComplete: () => {
-        // 色を変更（より濃い緑に）
-        if (this.unitCircle) {
-          this.unitCircle.clear();
-          this.unitCircle.fillStyle(0x008800, 1);
-          this.unitCircle.fillCircle(0, 0, 20);
-          this.unitCircle.lineStyle(2, 0xff0000, 0.8);
-          this.unitCircle.strokeCircle(0, 0, 20);
+        // レンダラーを使って色を変更
+        if (this.orcRenderer) {
+          this.orcRenderer.changeColor(0x008800);
         }
       },
     });

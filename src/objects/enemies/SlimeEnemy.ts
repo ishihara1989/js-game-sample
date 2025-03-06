@@ -1,8 +1,8 @@
 import { BattleScene } from '../../scenes/BattleScene';
-import { EnemyUnit /* DropItem */ } from '../EnemyUnit';
+import { EnemyUnit } from '../EnemyUnit';
 import { Unit } from '../Unit';
-// Include Phaser import for direct usage in this file
 import Phaser from 'phaser';
+import { EnemyRenderer } from '../../renderers/EnemyRenderer';
 
 /**
  * スライムエネミークラス
@@ -15,6 +15,9 @@ export class SlimeEnemy extends EnemyUnit {
   private isDashing: boolean = false;
   private originalSpeed: number = 0;
   private speedMultiplier: number = 1.0; // 移動速度の倍率
+  
+  // レンダラー参照を独自に保持（型を特定するため）
+  private slimeRenderer: EnemyRenderer | null = null;
 
   constructor(scene: BattleScene, x: number, y: number, level: number) {
     super({
@@ -29,6 +32,11 @@ export class SlimeEnemy extends EnemyUnit {
 
     // 元のスピードを記録
     this.originalSpeed = this.speed;
+    
+    // レンダラーを取得して保持（レンダラーはUnit.tsのコンストラクタで作成される）
+    if (this.renderer instanceof EnemyRenderer) {
+      this.slimeRenderer = this.renderer;
+    }
   }
 
   /**
@@ -102,17 +110,24 @@ export class SlimeEnemy extends EnemyUnit {
   private prepareDash(): void {
     if (!this.target) return;
 
-    // 視覚的な前兆効果（少し縮む）
-    this.scene.tweens.add({
-      targets: this,
-      scaleX: 0.8,
-      scaleY: 0.8,
-      duration: 300,
-      yoyo: true,
-      onComplete: () => {
+    // レンダラーを使って縮小エフェクト
+    if (this.slimeRenderer) {
+      this.slimeRenderer.scaleEffect(0.8, 0.8, 300, true, () => {
         this.startDash();
-      },
-    });
+      });
+    } else {
+      // レンダラーがない場合は直接tweenを適用（レガシー対応）
+      this.scene.tweens.add({
+        targets: this,
+        scaleX: 0.8,
+        scaleY: 0.8,
+        duration: 300,
+        yoyo: true,
+        onComplete: () => {
+          this.startDash();
+        },
+      });
+    }
 
     console.warn(`${this.name} is preparing to dash!`);
   }
@@ -131,13 +146,9 @@ export class SlimeEnemy extends EnemyUnit {
     // ターゲットに向かって直線的に移動するための目標設定
     this.movementTarget = new Phaser.Math.Vector2(this.target.x, this.target.y);
 
-    // 色を変更して強調（より鮮やかな青に）
-    if (this.unitCircle) {
-      this.unitCircle.clear();
-      this.unitCircle.fillStyle(0x00ffff, 1);
-      this.unitCircle.fillCircle(0, 0, 20);
-      this.unitCircle.lineStyle(2, 0xffffff, 0.8);
-      this.unitCircle.strokeCircle(0, 0, 20);
+    // レンダラーを使って色を変更
+    if (this.slimeRenderer) {
+      this.slimeRenderer.changeColor(0x00ffff);
     }
 
     console.warn(`${this.name} dashes towards ${this.target.name}!`);
@@ -147,7 +158,6 @@ export class SlimeEnemy extends EnemyUnit {
    * ダッシュ中の更新処理
    */
   private updateDash(_delta: number): void {
-    // Changed parameter name to _delta since it's not used
     if (!this.target || !this.movementTarget) {
       this.endDash();
       return;
@@ -196,8 +206,11 @@ export class SlimeEnemy extends EnemyUnit {
       this.x += Math.cos(angle) * this.speed * this.speedMultiplier;
       this.y += Math.sin(angle) * this.speed * this.speedMultiplier;
 
-      // 向きを更新
-      this.updateDirection(angle);
+      // レンダラーを使用して向きの更新を行う
+      if (this.renderer) {
+        // Unit.updateでレンダラーのupdateとrenderが呼ばれるので
+        // 方向の更新は自動的に行われる
+      }
     }
   }
 
@@ -243,13 +256,9 @@ export class SlimeEnemy extends EnemyUnit {
     // 移動速度倍率を元に戻す
     this.speedMultiplier = 1.0;
 
-    // 色を元に戻す
-    if (this.unitCircle) {
-      this.unitCircle.clear();
-      this.unitCircle.fillStyle(0x00aaff, 1);
-      this.unitCircle.fillCircle(0, 0, 20);
-      this.unitCircle.lineStyle(2, 0xffffff, 0.8);
-      this.unitCircle.strokeCircle(0, 0, 20);
+    // レンダラーを使って色を元に戻す
+    if (this.slimeRenderer) {
+      this.slimeRenderer.resetColor();
     }
 
     // クールダウンを設定
@@ -264,8 +273,6 @@ export class SlimeEnemy extends EnemyUnit {
    * 速度倍率を適用する
    */
   protected updateMovement(_delta: number): void {
-    // Changed parameter name to _delta since it's not used
-
     // 移動クールダウン中は移動しない
     if (this.moveCooldown > 0) return;
 
@@ -296,13 +303,14 @@ export class SlimeEnemy extends EnemyUnit {
       this.x += Math.cos(angle) * this.speed * this.speedMultiplier;
       this.y += Math.sin(angle) * this.speed * this.speedMultiplier;
 
-      // 向きを更新
-      this.updateDirection(angle);
+      // レンダラーを使用して向きの更新を行う
+      if (this.renderer) {
+        // Unit.updateでレンダラーのupdateとrenderが呼ばれるので
+        // 方向の更新は自動的に行われる
+      }
     } else if (this.target) {
       // ターゲットがnullでないことを確認
-      // ターゲットの方向を向く
-      const angle = Phaser.Math.Angle.Between(this.x, this.y, this.target.x, this.target.y);
-      this.updateDirection(angle);
+      // ターゲットの方向を向く - レンダラーが自動的に処理
     }
   }
 }
