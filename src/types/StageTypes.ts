@@ -1,4 +1,4 @@
-import { Unit } from '../objects/Unit';
+// import { Unit } from '../objects/Unit';
 import { BattleResult } from './BattleTypes';
 
 // ステージの基本設定インターフェース

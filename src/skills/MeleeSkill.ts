@@ -1,5 +1,7 @@
 import { Unit } from '../objects/Unit';
 import { Skill, SkillConfig, SkillEffectType, SkillTargetType } from './Skill';
+// Add Phaser import for direct usage
+import Phaser from 'phaser';
 
 /**
  * 近接攻撃スキル設定インターフェース
@@ -56,7 +58,7 @@ export class MeleeSkill extends Skill {
       this.owner.battleScene.showSkillEffect(this.owner, target);
     }
 
-    console.log(`${this.owner.name} uses ${this.name} on ${target.name} for ${damage} damage!`);
+    console.warn(`${this.owner.name} uses ${this.name} on ${target.name} for ${damage} damage!`);
     return true;
   }
 

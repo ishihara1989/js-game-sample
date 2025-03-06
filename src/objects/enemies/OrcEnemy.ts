@@ -1,5 +1,5 @@
 import { BattleScene } from '../../scenes/BattleScene';
-import { EnemyUnit, DropItem } from '../EnemyUnit';
+import { EnemyUnit /* DropItem */ } from '../EnemyUnit';
 import { Unit } from '../Unit'; // Unit型をインポート
 
 /**
@@ -99,7 +99,7 @@ export class OrcEnemy extends EnemyUnit {
     // ※実際には attackPower が readonly なので、通常は変更できない
     // ※将来的には状態異常システムを実装し、そちらで対応する予定
 
-    console.log(`${this.name} becomes enraged! Attack power increases!`);
+    console.warn(`${this.name} becomes enraged! Attack power increases!`);
 
     // エンレイジ視覚効果（赤く点滅）
     this.scene.tweens.add({
@@ -145,7 +145,7 @@ export class OrcEnemy extends EnemyUnit {
       this.battleScene.showAttackEffect(this, target);
     }
 
-    console.log(
+    console.warn(
       `${this.name} attacks ${target.name} for ${damage} damage!${this.enraged ? ' (Enraged)' : ''}`
     );
   }

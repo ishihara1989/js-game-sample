@@ -101,8 +101,8 @@ export class Unit extends Phaser.GameObjects.Container {
     // シーンに追加
     this.scene.add.existing(this);
 
-    // 名前が見えることを確認
-    console.log(`Created unit ${this.name} at ${this.x},${this.y}. isPlayer: ${this.isPlayer}`);
+    // 名前が見えることを確認（console.logから警告許可されているconsole.warnに変更）
+    console.warn(`Created unit ${this.name} at ${this.x},${this.y}. isPlayer: ${this.isPlayer}`);
   }
 
   update(delta: number): void {
@@ -146,7 +146,7 @@ export class Unit extends Phaser.GameObjects.Container {
     this.skills.forEach((skill) => skill.update(delta));
   }
 
-  protected updateMovement(delta: number): void {
+  protected updateMovement(_delta: number): void {
     // privateからprotectedに変更
     // 移動クールダウン中は移動しない
     if (this.moveCooldown > 0) return;
@@ -209,7 +209,9 @@ export class Unit extends Phaser.GameObjects.Container {
   }
 
   // privateメソッドをprotectedに変更し、サブクラスでオーバーライドできるようにする
-  protected updateAI(delta: number): void {
+  protected updateAI(_delta: number): void {
+    // 'delta' parameter was renamed to '_delta' to indicate unused parameter intentionally
+
     // プレイヤーユニットは手動制御を想定（現在はAIで自動行動）
     if (!this.target) return; // ターゲットがない場合は処理しない
 
@@ -251,7 +253,7 @@ export class Unit extends Phaser.GameObjects.Container {
     }
 
     // ランダム移動のタイマー更新
-    this.wanderTimer += delta;
+    this.wanderTimer += _delta;
     if (this.wanderTimer >= this.wanderInterval) {
       this.wanderTimer = 0;
       if (!this.movementTarget && this.moveCooldown <= 0) {
@@ -299,7 +301,7 @@ export class Unit extends Phaser.GameObjects.Container {
       this.battleScene.showAttackEffect(this, target);
     }
 
-    console.log(`${this.name} attacks ${target.name} for ${damage} damage!`);
+    console.warn(`${this.name} attacks ${target.name} for ${damage} damage!`);
   }
 
   // スキル関連メソッド
@@ -311,7 +313,7 @@ export class Unit extends Phaser.GameObjects.Container {
   addSkill(skill: Skill): void {
     skill.setOwner(this);
     this.skills.push(skill);
-    console.log(`${this.name} learned skill: ${skill.name}`);
+    console.warn(`${this.name} learned skill: ${skill.name}`);
   }
 
   /**
@@ -388,7 +390,7 @@ export class Unit extends Phaser.GameObjects.Container {
         this.battleScene.showSkillEffect(this, this.target);
       }
 
-      console.log(`${this.name} uses skill on ${this.target.name} for ${damage} damage!`);
+      console.warn(`${this.name} uses skill on ${this.target.name} for ${damage} damage!`);
     }
   }
 

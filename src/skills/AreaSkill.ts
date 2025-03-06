@@ -1,5 +1,7 @@
 import { Unit } from '../objects/Unit';
 import { Skill, SkillConfig, SkillEffectType, SkillTargetType } from './Skill';
+// Add Phaser import for direct usage
+import Phaser from 'phaser';
 
 /**
  * 範囲攻撃スキル設定インターフェース
@@ -57,7 +59,7 @@ export class AreaSkill extends Skill {
       this.applyEffectToTarget(targetUnit, target);
     });
 
-    console.log(`${this.owner.name} uses ${this.name} affecting ${targets.length} units!`);
+    console.warn(`${this.owner.name} uses ${this.name} affecting ${targets.length} units!`);
     return true;
   }
 
@@ -119,11 +121,12 @@ export class AreaSkill extends Skill {
 
     // 効果タイプに応じて処理
     switch (this.effectType) {
-      case SkillEffectType.DAMAGE:
+      case SkillEffectType.DAMAGE: {
         // ダメージ計算（防御力の影響を考慮）
         const damage = Math.max(1, effectPower - targetUnit.defense / 3);
         targetUnit.takeDamage(damage);
         break;
+      }
 
       case SkillEffectType.HEAL:
         // 味方の場合は回復（未実装）

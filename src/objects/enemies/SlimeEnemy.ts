@@ -1,6 +1,8 @@
 import { BattleScene } from '../../scenes/BattleScene';
-import { EnemyUnit, DropItem } from '../EnemyUnit';
+import { EnemyUnit /* DropItem */ } from '../EnemyUnit';
 import { Unit } from '../Unit';
+// Include Phaser import for direct usage in this file
+import Phaser from 'phaser';
 
 /**
  * スライムエネミークラス
@@ -112,7 +114,7 @@ export class SlimeEnemy extends EnemyUnit {
       },
     });
 
-    console.log(`${this.name} is preparing to dash!`);
+    console.warn(`${this.name} is preparing to dash!`);
   }
 
   /**
@@ -138,13 +140,14 @@ export class SlimeEnemy extends EnemyUnit {
       this.unitCircle.strokeCircle(0, 0, 20);
     }
 
-    console.log(`${this.name} dashes towards ${this.target.name}!`);
+    console.warn(`${this.name} dashes towards ${this.target.name}!`);
   }
 
   /**
    * ダッシュ中の更新処理
    */
-  private updateDash(delta: number): void {
+  private updateDash(_delta: number): void {
+    // Changed parameter name to _delta since it's not used
     if (!this.target || !this.movementTarget) {
       this.endDash();
       return;
@@ -228,7 +231,7 @@ export class SlimeEnemy extends EnemyUnit {
       });
     }
 
-    console.log(`${this.name} dash attacks ${target.name} for ${damage} damage!`);
+    console.warn(`${this.name} dash attacks ${target.name} for ${damage} damage!`);
   }
 
   /**
@@ -260,7 +263,9 @@ export class SlimeEnemy extends EnemyUnit {
    * 移動処理のオーバーライド
    * 速度倍率を適用する
    */
-  protected updateMovement(delta: number): void {
+  protected updateMovement(_delta: number): void {
+    // Changed parameter name to _delta since it's not used
+
     // 移動クールダウン中は移動しない
     if (this.moveCooldown > 0) return;
 

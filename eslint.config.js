@@ -22,7 +22,8 @@ module.exports = [
         // ブラウザのグローバル変数
         window: 'readonly',
         document: 'readonly',
-        navigator: 'readonly'
+        navigator: 'readonly',
+        console: 'readonly',
       }
     }
   },
