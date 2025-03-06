@@ -1,5 +1,5 @@
 import { BattleScene } from '../../scenes/BattleScene';
-import { EnemyUnit, DropItem } from '../EnemyUnit';
+import { EnemyUnit, /* DropItem */ } from '../EnemyUnit';
 
 /**
  * ゴブリンエネミークラス
