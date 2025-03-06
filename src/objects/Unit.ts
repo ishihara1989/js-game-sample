@@ -33,20 +33,23 @@ export class Unit extends Phaser.GameObjects.Container {
   private moveCooldown: number = 0;
   readonly moveCooldownMax: number = 500; // ミリ秒
 
+  // 戦闘報酬関連
+  protected expValue: number = 0; // 倒した時に得られる経験値
+
   // 参照
-  private target: Unit | null = null;
-  private battleScene: BattleScene;
+  protected target: Unit | null = null; // privateからprotectedに変更
+  protected battleScene: BattleScene; // privateからprotectedに変更
 
   // 見た目関連
   private unitCircle: Phaser.GameObjects.Graphics;
   private directionIndicator: Phaser.GameObjects.Graphics;
   hpText?: Phaser.GameObjects.Text;
-  nameText: Phaser.GameObjects.Text; // privateから変更して外部からアクセス可能に
+  nameText: Phaser.GameObjects.Text;
 
   // 移動関連
-  private movementTarget: Phaser.Math.Vector2 | null = null;
-  private wanderTimer: number = 0;
-  private readonly wanderInterval: number = 3000; // 3秒ごとにランダム移動
+  protected movementTarget: Phaser.Math.Vector2 | null = null; // privateからprotectedに変更
+  protected wanderTimer: number = 0; // privateからprotectedに変更
+  protected readonly wanderInterval: number = 3000; // 3秒ごとにランダム移動 // privateからprotectedに変更
 
   constructor(config: UnitConfig) {
     super(config.scene, config.x, config.y);
@@ -134,7 +137,8 @@ export class Unit extends Phaser.GameObjects.Container {
     }
   }
 
-  private updateMovement(delta: number): void {
+  protected updateMovement(delta: number): void {
+    // privateからprotectedに変更
     // 移動クールダウン中は移動しない
     if (this.moveCooldown > 0) return;
 
@@ -175,7 +179,8 @@ export class Unit extends Phaser.GameObjects.Container {
     }
   }
 
-  private updateDirection(angle: number): void {
+  protected updateDirection(angle: number): void {
+    // privateからprotectedに変更
     // 方向インディケーターがない場合は何もしない
     if (!this.directionIndicator) return;
 
@@ -194,7 +199,8 @@ export class Unit extends Phaser.GameObjects.Container {
     this.directionIndicator.fillTriangle(x1, y1, x2, y2, x3, y3);
   }
 
-  private updateAI(delta: number): void {
+  // privateメソッドをprotectedに変更し、サブクラスでオーバーライドできるようにする
+  protected updateAI(delta: number): void {
     // プレイヤーユニットは手動制御を想定（現在はAIで自動行動）
     if (!this.target) return; // ターゲットがない場合は処理しない
 
@@ -237,7 +243,8 @@ export class Unit extends Phaser.GameObjects.Container {
     }
   }
 
-  private moveToRandomPositionNearTarget(): void {
+  protected moveToRandomPositionNearTarget(): void {
+    // privateからprotectedに変更
     if (!this.target) return;
 
     // ターゲット周辺のランダムな位置
@@ -344,6 +351,11 @@ export class Unit extends Phaser.GameObjects.Container {
   // ターゲットを設定
   setTarget(unit: Unit): void {
     this.target = unit;
+  }
+
+  // 経験値の取得
+  getExpValue(): number {
+    return this.expValue;
   }
 
   // ユニットのクリーンアップ
