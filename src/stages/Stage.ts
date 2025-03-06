@@ -1,7 +1,9 @@
 import Phaser from 'phaser';
 import { BattleScene } from '../scenes/BattleScene';
 import { Unit } from '../objects/Unit';
+import { EnemyUnit } from '../objects/EnemyUnit';
 import { StageConfig, EnemyConfig, StageStatus, StageResult } from '../types/StageTypes';
+import { EnemyFactory, EnemyType } from '../objects/enemies';
 
 /**
  * ステージの基底クラス
@@ -132,89 +134,50 @@ export class Stage {
    * 敵ユニットの生成
    */
   protected createEnemyUnits(): void {
-    // 基本的な敵ユニットの生成
-    this.enemyConfigs.forEach((enemyConfig, index) => {
-      // 敵の種類に基づいて適切な設定を行う
-      const texture = 'enemy'; // デフォルトのテクスチャ
-      let name = 'Enemy';
-      let color = 0xff5555;
-      let maxHealth = 80;
-      let attack = 8;
-      let defense = 3;
-      let speed = 1.5;
-
-      // 敵の種類ごとに設定をカスタマイズ
-      switch (enemyConfig.type) {
-        case 'goblin':
-          name = 'Goblin';
-          color = 0xff5555; // 赤
-          maxHealth = 40;
-          attack = 8;
-          defense = 3;
-          speed = 1.5;
-          break;
-        case 'orc':
-          name = 'Orc';
-          color = 0x00aa00; // 緑
-          maxHealth = 120;
-          attack = 12;
-          defense = 6;
-          speed = 1.2;
-          break;
-        case 'slime':
-          name = 'Slime';
-          color = 0x00aaff; // 青
-          maxHealth = 60;
-          attack = 5;
-          defense = 2;
-          speed = 1.8;
-          break;
-        // 他の敵タイプは必要に応じて追加
-      }
-
-      // 敵レベルに基づいてステータスを調整
-      const levelMultiplier = 1 + (enemyConfig.level - 1) * 0.2;
-      maxHealth = Math.floor(maxHealth * levelMultiplier);
-      attack = Math.floor(attack * levelMultiplier);
-      defense = Math.floor(defense * levelMultiplier);
-
-      // カスタムステータスの適用（設定されている場合）
-      if (enemyConfig.stats) {
-        if (enemyConfig.stats.maxHealth) maxHealth = enemyConfig.stats.maxHealth;
-        if (enemyConfig.stats.attack) attack = enemyConfig.stats.attack;
-        if (enemyConfig.stats.defense) defense = enemyConfig.stats.defense;
-        if (enemyConfig.stats.speed) speed = enemyConfig.stats.speed;
-      }
-
+    // 敵ファクトリーを使って敵ユニットを生成
+    this.enemyConfigs.forEach((enemyConfig) => {
       // 位置の決定
       let x = 600; // デフォルト位置
-      let y = 200 + index * 100;
+      let y = 300;
 
       if (enemyConfig.position) {
         x = enemyConfig.position.x;
         y = enemyConfig.position.y;
       }
 
-      // 敵ユニットの作成
-      const enemyUnit = new Unit({
-        scene: this.scene,
+      // 敵タイプをEnemyTypeに変換
+      let enemyType: EnemyType;
+      switch (enemyConfig.type) {
+        case 'goblin':
+          enemyType = EnemyType.GOBLIN;
+          break;
+        case 'orc':
+          enemyType = EnemyType.ORC;
+          break;
+        case 'slime':
+          enemyType = EnemyType.SLIME;
+          break;
+        default:
+          enemyType = EnemyType.GOBLIN; // デフォルト
+      }
+
+      // EnemyFactoryを使って敵を生成
+      const enemy = EnemyFactory.createEnemy(
+        enemyType,
+        this.scene,
         x,
         y,
-        texture,
-        name: `${name} Lv.${enemyConfig.level}`,
-        maxHealth,
-        attack,
-        defense,
-        speed,
-        isPlayer: false,
-        color,
-      });
+        enemyConfig.level || 1
+      );
+
+      // カスタムステータスの適用（設定されている場合）
+      // この部分はEnemyUnitクラスに移動しています
 
       // ユニットをリストに追加
-      this.enemyUnits.push(enemyUnit);
+      this.enemyUnits.push(enemy);
 
       // バトルシーンに敵ユニットを登録
-      this.scene.addEnemyUnit(enemyUnit);
+      this.scene.addEnemyUnit(enemy);
     });
 
     // プレイヤーとの関連付け
@@ -291,13 +254,29 @@ export class Stage {
       const victorUnit = this.playerUnit;
       const defeatedUnit = this.enemyUnits[0]; // 代表として最初の敵を設定
 
+      // 経験値と報酬計算
+      let totalExp = this.config.rewards.exp;
+      let totalGold = this.config.rewards.gold;
+      const items = [...(this.config.rewards.items || [])];
+
+      // EnemyUnitから報酬を取得
+      this.enemyUnits.forEach(unit => {
+        if (unit instanceof EnemyUnit) {
+          const rewards = unit.getRewards();
+          totalExp += rewards.experience;
+          if (rewards.item) {
+            items.push(rewards.item);
+          }
+        }
+      });
+
       const result = {
         victory: true,
         defeatedUnit,
         victorUnit,
-        exp: this.config.rewards.exp,
-        gold: this.config.rewards.gold,
-        items: this.config.rewards.items || [],
+        exp: totalExp,
+        gold: totalGold,
+        items,
       };
 
       // 少し待ってからリザルト画面へ
