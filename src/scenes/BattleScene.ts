@@ -53,6 +53,8 @@ export class BattleScene extends Phaser.Scene {
       font: '16px Arial',
       color: '#ffffff',
     });
+    // デバッグテキストは最前面に表示
+    this.debugText.setDepth(100);
 
     // プレイヤーユニットの作成（左側）
     this.playerUnit = new Unit({
@@ -110,14 +112,18 @@ export class BattleScene extends Phaser.Scene {
     console.log(`Creating UI for ${unit.name}, isPlayer: ${unit.isPlayer}`);
 
     // HPバー
-    this.healthBars.set(unit, this.add.graphics());
+    const healthBar = this.add.graphics();
+    this.healthBars.set(unit, healthBar);
+    // HPバーに高い深度を設定
+    healthBar.setDepth(10);
 
     // スキルゲージ
-    this.skillBars.set(unit, this.add.graphics());
+    const skillBar = this.add.graphics();
+    this.skillBars.set(unit, skillBar);
+    // スキルゲージに高い深度を設定
+    skillBar.setDepth(10);
 
     // 初回の描画
-    const healthBar = this.healthBars.get(unit);
-    const skillBar = this.skillBars.get(unit);
     if (healthBar && skillBar) {
       this.drawHealthBar(healthBar, unit, 20);
       this.drawSkillBar(skillBar, unit, 40);
@@ -179,10 +185,11 @@ export class BattleScene extends Phaser.Scene {
         stroke: '#000000',
         strokeThickness: 2,
       });
+      // HP値テキストに高い深度を設定
+      unit.hpText.setDepth(11);
     }
     unit.hpText.setText(`${Math.floor(unit.health)}/${unit.maxHealth}`);
     unit.hpText.setPosition(x + width / 2 - unit.hpText.width / 2, y - 15);
-    unit.hpText.setDepth(1); // 前面に表示
   }
 
   private drawSkillBar(graphics: Phaser.GameObjects.Graphics, unit: Unit, yOffset: number): void {
@@ -288,6 +295,8 @@ export class BattleScene extends Phaser.Scene {
 
     // シンプルなエフェクト
     const attackEffect = this.add.circle(midX, midY, 15, attacker.isPlayer ? 0x6666ff : 0xff6666);
+    // エフェクトに高い深度を設定
+    attackEffect.setDepth(20);
 
     // エフェクトのアニメーション
     this.tweens.add({
@@ -312,12 +321,17 @@ export class BattleScene extends Phaser.Scene {
 
     // スキルのグラフィック
     const skillGraphics = this.add.graphics();
+    // スキルグラフィックに高い深度を設定
+    skillGraphics.setDepth(20);
     skillGraphics.fillStyle(color, 0.8);
 
     // プレイヤーと敵で異なるスキルエフェクト
     if (caster.isPlayer) {
       // プレイヤースキル: 魔法の弾
       const projectile = this.add.circle(startX, startY, 10, color);
+      // 投射物に高い深度を設定
+      projectile.setDepth(20);
+      
       this.tweens.add({
         targets: projectile,
         x: target.x,
@@ -326,6 +340,9 @@ export class BattleScene extends Phaser.Scene {
         onComplete: () => {
           // 着弾時の爆発エフェクト
           const explosion = this.add.circle(target.x, target.y, 5, color);
+          // 爆発エフェクトに高い深度を設定
+          explosion.setDepth(20);
+          
           this.tweens.add({
             targets: explosion,
             scale: { from: 1, to: 3 },
@@ -341,6 +358,8 @@ export class BattleScene extends Phaser.Scene {
     } else {
       // 敵スキル: 渦巻き状のエフェクト
       const swirl = this.add.graphics();
+      // 渦巻きエフェクトに高い深度を設定
+      swirl.setDepth(20);
       swirl.fillStyle(color, 0.7);
 
       let angle = 0;
