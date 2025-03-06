@@ -1,18 +1,25 @@
 // eslint.config.js
+const js = require('@eslint/js');
 const tseslint = require('@typescript-eslint/eslint-plugin');
 const tsparser = require('@typescript-eslint/parser');
 const prettierPlugin = require('eslint-plugin-prettier');
+const prettierConfig = require('eslint-config-prettier');
 
-// 設定を簡略化
+// ESLint v9のフラットコンフィグスタイル
 module.exports = [
+  // グローバル設定
   {
-    // グローバル設定
-    ignores: ['node_modules/**', 'dist/**', 'webpack.config.js'],
+    ignores: ['node_modules/**', 'dist/**', 'webpack.config.js']
+  },
+  // ベースとなるJavaScriptの推奨設定
+  js.configs.recommended,
+  // 全ファイル共通設定
+  {
     languageOptions: {
       ecmaVersion: 2021,
       sourceType: 'module',
       globals: {
-        // ブラウザとES2021のグローバル変数
+        // ブラウザのグローバル変数
         window: 'readonly',
         document: 'readonly',
         navigator: 'readonly'
@@ -33,6 +40,7 @@ module.exports = [
       prettier: prettierPlugin
     },
     rules: {
+      ...tseslint.configs['recommended'].rules,
       'prettier/prettier': 'error',
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/no-explicit-any': 'warn',
@@ -50,5 +58,7 @@ module.exports = [
       'prettier/prettier': 'error',
       'no-console': ['warn', { allow: ['warn', 'error'] }]
     }
-  }
+  },
+  // Prettierの競合設定を上書き
+  prettierConfig
 ];
