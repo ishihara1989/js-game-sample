@@ -1,4 +1,5 @@
-import Phaser from 'phaser';
+// Phaser import is not used directly in this file
+// import Phaser from 'phaser';
 import { BattleScene } from '../scenes/BattleScene';
 import { Unit } from '../objects/Unit';
 import { EnemyUnit } from '../objects/EnemyUnit';
@@ -184,7 +185,7 @@ export class Stage {
     this.status = StageStatus.IN_PROGRESS;
     this.startTime = this.scene.time.now;
 
-    console.log(`Stage ${this.config.id} (${this.config.name}) started!`);
+    console.warn(`Stage ${this.config.id} (${this.config.name}) started!`);
   }
 
   /**
@@ -230,7 +231,7 @@ export class Stage {
    * エネミーユニットから経験値とドロップアイテムを取得するように更新
    */
   protected onStageCleared(): void {
-    console.log(`Stage ${this.config.id} cleared!`);
+    console.warn(`Stage ${this.config.id} cleared!`);
 
     // リザルトシーンに渡すデータを作成
     if (this.playerUnit && this.enemyUnits.length > 0) {
@@ -273,7 +274,7 @@ export class Stage {
    * ステージ失敗時の処理
    */
   protected onStageFailed(): void {
-    console.log(`Stage ${this.config.id} failed!`);
+    console.warn(`Stage ${this.config.id} failed!`);
 
     // リザルトシーンに渡すデータを作成
     if (this.playerUnit && this.enemyUnits.length > 0) {
@@ -332,7 +333,7 @@ export class Stage {
    * ステージの状態をクリーンアップ
    */
   cleanup(): void {
-    console.log('Cleaning up stage...');
+    console.warn('Cleaning up stage...');
     // 敵ユニットの参照をクリア（実際のオブジェクト削除はBattleSceneで行う）
     this.enemyUnits = [];
     this.playerUnit = null;
