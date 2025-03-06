@@ -143,7 +143,7 @@ export class Stage {
         case 'goblin':
           name = 'Goblin';
           color = 0xff5555; // 赤
-          maxHealth = 80;
+          maxHealth = 40;
           attack = 8;
           defense = 3;
           speed = 1.5;
