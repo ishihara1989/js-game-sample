@@ -61,6 +61,9 @@ export class Unit extends Phaser.GameObjects.Container {
     this.speed = config.speed;
     this.battleScene = config.scene as BattleScene;
 
+    // コンテナ自体に深度を設定
+    this.setDepth(5);
+
     // グラフィックの作成
     this.unitCircle = this.scene.add.graphics();
     this.unitCircle.fillStyle(config.color, 1);
@@ -81,6 +84,8 @@ export class Unit extends Phaser.GameObjects.Container {
       strokeThickness: 3,
     });
     this.nameText.setOrigin(0.5);
+    // 名前テキストに高い深度を設定
+    this.nameText.setDepth(10);
 
     // コンテナには円とインディケーターだけ追加
     this.add([this.unitCircle, this.directionIndicator]);
@@ -321,6 +326,8 @@ export class Unit extends Phaser.GameObjects.Container {
       color: '#ff0000',
     });
     damageText.setOrigin(0.5);
+    // ダメージテキストに高い深度を設定
+    damageText.setDepth(15);
 
     // テキストを上に浮かせながらフェードアウト
     this.scene.tweens.add({
