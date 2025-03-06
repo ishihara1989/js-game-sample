@@ -1,7 +1,8 @@
 // Remove the Phaser import as it's not used directly in this file
 // import Phaser from 'phaser';
 import { BattleScene } from '../scenes/BattleScene';
-import { Unit } from './Unit';
+import { Unit, SkillUnlock } from './Unit';
+import { createBasicMeleeSkill, createPowerMeleeSkill, createBasicRangeSkill, createPrecisionRangeSkill, createBasicAreaSkill, createLargeAreaSkill } from '../skills';
 
 /**
  * エネミーユニットの設定インターフェース
@@ -39,7 +40,6 @@ export interface DropItem {
  */
 export class EnemyUnit extends Unit {
   // エネミーの基本情報
-  protected level: number = 1;
   protected baseMaxHealth: number = 50;
   protected baseAttack: number = 8;
   protected baseDefense: number = 4;
@@ -81,10 +81,8 @@ export class EnemyUnit extends Unit {
       speed,
       isPlayer: false, // エネミーなのでfalse
       color: config.color,
+      level: config.level,
     });
-
-    // エネミー固有のプロパティを設定
-    this.level = config.level;
 
     // 基本ステータスの初期化（サブクラスでオーバーライド）
     this.initializeBaseStats();
@@ -94,6 +92,9 @@ export class EnemyUnit extends Unit {
 
     // ドロップアイテムの初期化
     this.initializeDrops();
+    
+    // スキル解放設定
+    this.setupEnemySkillUnlocks();
   }
 
   /**
@@ -136,13 +137,61 @@ export class EnemyUnit extends Unit {
   }
 
   /**
+   * 敵ユニットのスキル解放設定
+   * サブクラスでオーバーライド可能
+   */
+  protected setupEnemySkillUnlocks(): void {
+    // 基本的なスキル解放設定（すべての敵共通）
+    const skillUnlocks: SkillUnlock[] = [
+      // レベル1 - 近接攻撃
+      {
+        level: 1,
+        skillFactory: createBasicMeleeSkill,
+      },
+      // レベル3 - 遠距離攻撃
+      {
+        level: 3,
+        skillFactory: createBasicRangeSkill,
+        message: "遠距離攻撃を習得した!"
+      },
+      // レベル5 - 強力な近接攻撃
+      {
+        level: 5,
+        skillFactory: createPowerMeleeSkill,
+        message: "強力な近接攻撃を習得した!"
+      },
+      // レベル8 - 範囲攻撃
+      {
+        level: 8,
+        skillFactory: createBasicAreaSkill,
+        message: "範囲攻撃を習得した!"
+      },
+      // レベル10 - 精密射撃
+      {
+        level: 10,
+        skillFactory: createPrecisionRangeSkill,
+        message: "精密射撃を習得した!"
+      },
+      // レベル15 - 大規模範囲攻撃
+      {
+        level: 15,
+        skillFactory: createLargeAreaSkill,
+        message: "大規模範囲攻撃を習得した!"
+      }
+    ];
+    
+    // スキル解放を設定
+    this.setSkillUnlocks(skillUnlocks);
+  }
+
+  /**
    * 経験値の計算
    * @returns 獲得できる経験値
    */
   protected calculateExpValue(): number {
     // レベルに応じた経験値を計算
     // 基本値 + レベルに応じた増加
-    return Math.floor(this.baseExpValue * (1 + (this.level - 1) * 0.3));
+    return Math.floor(this.baseExpValue * (1 + (this.getLevel() - 1) * 0.3));
   }
 
   /**
