@@ -202,16 +202,16 @@ export class Stage {
     });
 
     // プレイヤーとの関連付け
-    if (this.playerUnit) {
+    if (this.playerUnit && this.enemyUnits.length > 0) {
       // 初期の敵をターゲットに設定
-      if (this.enemyUnits.length > 0) {
-        this.playerUnit.setTarget(this.enemyUnits[0]);
+      this.playerUnit.setTarget(this.enemyUnits[0]);
 
-        // 敵もプレイヤーをターゲットに設定
-        this.enemyUnits.forEach((enemy) => {
+      // 敵もプレイヤーをターゲットに設定
+      this.enemyUnits.forEach((enemy) => {
+        if (this.playerUnit) {  // nullチェックを追加
           enemy.setTarget(this.playerUnit);
-        });
-      }
+        }
+      });
     }
   }
 
