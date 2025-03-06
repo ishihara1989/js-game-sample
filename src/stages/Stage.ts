@@ -143,7 +143,7 @@ export class Stage {
         case 'goblin':
           name = 'Goblin';
           color = 0xff5555; // 赤
-          maxHealth = 40;
+          maxHealth = 80;
           attack = 8;
           defense = 3;
           speed = 1.5;
@@ -207,7 +207,7 @@ export class Stage {
 
       // ユニットをリストに追加
       this.enemyUnits.push(enemyUnit);
-
+      
       // バトルシーンに敵ユニットを登録
       this.scene.addEnemyUnit(enemyUnit);
     });
@@ -219,8 +219,7 @@ export class Stage {
 
       // 敵もプレイヤーをターゲットに設定
       this.enemyUnits.forEach((enemy) => {
-        if (this.playerUnit) {
-          // nullチェックを追加
+        if (this.playerUnit) {  // nullチェックを追加
           enemy.setTarget(this.playerUnit);
         }
       });
@@ -365,12 +364,8 @@ export class Stage {
    * ステージの状態をクリーンアップ
    */
   cleanup(): void {
-    // 敵ユニットの削除
-    this.enemyUnits.forEach((unit) => {
-      // 必要ならPhaser上のオブジェクトも削除
-      unit.destroy();
-    });
-
+    console.log("Cleaning up stage...");
+    // 敵ユニットの参照をクリア（実際のオブジェクト削除はBattleSceneで行う）
     this.enemyUnits = [];
     this.playerUnit = null;
     this.status = StageStatus.NOT_STARTED;
