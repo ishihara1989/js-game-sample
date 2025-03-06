@@ -1,4 +1,5 @@
-import Phaser from 'phaser';
+// Remove the Phaser import as it's not used directly in this file
+// import Phaser from 'phaser';
 import { BattleScene } from '../scenes/BattleScene';
 import { Unit } from './Unit';
 
@@ -175,9 +176,11 @@ export class EnemyUnit extends Unit {
    * 必要に応じてサブクラスでオーバーライドする
    * @param delta 前フレームからの経過時間
    */
-  protected updateAI(delta: number): void {
+  protected updateAI(_delta: number): void {
+    // Renamed 'delta' to '_delta' to match the unused variable naming pattern
+    
     // 基本的な行動パターン（親クラスのAIを使用）
-    super.updateAI(delta);
+    super.updateAI(_delta);
 
     // サブクラスでオーバーライドして拡張可能
   }
