@@ -1,139 +1,73 @@
-/**
- * スキルシステムのエクスポート
- */
+// スキルシステムのエクスポート
 
-// 基本スキルクラスとタイプのエクスポート
-export { Skill, SkillConfig, SkillTargetType, SkillEffectType } from './Skill';
+// 基本スキルクラスとタイプ
+export { Skill, SkillTargetType, SkillEffectType } from './Skill';
+export type { SkillConfig } from './Skill';
 
-// 各スキルタイプのエクスポート
-export { MeleeSkill, MeleeSkillConfig } from './MeleeSkill';
-export { RangeSkill, RangeSkillConfig } from './RangeSkill';
-export { AreaSkill, AreaSkillConfig } from './AreaSkill';
+// 近接攻撃スキル
+export { MeleeSkill } from './MeleeSkill';
+export type { MeleeSkillConfig } from './MeleeSkill';
 
-// スキル作成用ファクトリ関数
-import { Skill, SkillConfig } from './Skill';
-import { MeleeSkill, MeleeSkillConfig } from './MeleeSkill';
-import { RangeSkill, RangeSkillConfig } from './RangeSkill';
-import { AreaSkill, AreaSkillConfig } from './AreaSkill';
+// 遠距離攻撃スキル
+export { RangeSkill } from './RangeSkill';
+export type { RangeSkillConfig } from './RangeSkill';
 
-/**
- * スキルタイプ列挙型
- */
-export enum SkillType {
-  MELEE = 'melee',
-  RANGE = 'range',
-  AREA = 'area'
-}
+// 範囲攻撃スキル
+export { AreaSkill } from './AreaSkill';
+export type { AreaSkillConfig } from './AreaSkill';
 
-/**
- * スキルファクトリ：スキルタイプに応じて適切なスキルインスタンスを作成
- */
-export class SkillFactory {
-  /**
-   * 近接攻撃スキルを作成
-   * @param config スキル設定
-   * @returns 近接攻撃スキルインスタンス
-   */
-  static createMeleeSkill(config: MeleeSkillConfig): MeleeSkill {
-    return new MeleeSkill(config);
-  }
+// 基本スキルの定義
+export const BasicSkills = {
+  // 近接攻撃スキル
+  MELEE_SLASH: {
+    id: 'melee_slash',
+    name: '斬撃',
+    description: '敵に近接攻撃を行う',
+    cooldown: 1200,
+    targetType: SkillTargetType.SINGLE,
+    effectType: SkillEffectType.DAMAGE,
+    range: 150,
+    power: 15,
+  },
 
-  /**
-   * 遠距離攻撃スキルを作成
-   * @param config スキル設定
-   * @returns 遠距離攻撃スキルインスタンス
-   */
-  static createRangeSkill(config: RangeSkillConfig): RangeSkill {
-    return new RangeSkill(config);
-  }
+  // 遠距離攻撃スキル
+  RANGED_SHOT: {
+    id: 'ranged_shot',
+    name: '射撃',
+    description: '遠距離から敵に攻撃を行う',
+    cooldown: 2000,
+    targetType: SkillTargetType.SINGLE,
+    effectType: SkillEffectType.DAMAGE,
+    range: 300,
+    power: 12,
+  },
 
-  /**
-   * 範囲攻撃スキルを作成
-   * @param config スキル設定
-   * @returns 範囲攻撃スキルインスタンス
-   */
-  static createAreaSkill(config: AreaSkillConfig): AreaSkill {
-    return new AreaSkill(config);
-  }
+  // 範囲攻撃スキル
+  AREA_BLAST: {
+    id: 'area_blast',
+    name: '爆発',
+    description: '範囲内の敵に攻撃を行う',
+    cooldown: 5000,
+    targetType: SkillTargetType.AREA,
+    effectType: SkillEffectType.DAMAGE,
+    range: 200,
+    power: 10,
+    areaRadius: 100,
+  },
+};
 
-  /**
-   * スキルタイプに応じてスキルを作成
-   * @param type スキルタイプ
-   * @param config スキル設定
-   * @returns スキルインスタンス
-   */
-  static createSkill(type: SkillType, config: SkillConfig): Skill {
-    switch (type) {
-      case SkillType.MELEE:
-        return SkillFactory.createMeleeSkill(config as MeleeSkillConfig);
-      case SkillType.RANGE:
-        return SkillFactory.createRangeSkill(config as RangeSkillConfig);
-      case SkillType.AREA:
-        return SkillFactory.createAreaSkill(config as AreaSkillConfig);
-      default:
-        throw new Error(`Unknown skill type: ${type}`);
-    }
-  }
-
-  /**
-   * 基本的な近接攻撃スキルを作成（簡易作成用）
-   * @param name スキル名
-   * @param power 威力
-   * @returns 近接攻撃スキル
-   */
-  static createBasicMeleeSkill(name: string, power: number): MeleeSkill {
-    return SkillFactory.createMeleeSkill({
-      id: `melee_${name.toLowerCase().replace(/\s+/g, '_')}`,
-      name: name,
-      description: `Basic melee attack: ${name}`,
-      cooldown: 3000,
-      targetType: 0, // SINGLE
-      effectType: 0, // DAMAGE
-      range: 150,
-      power: power,
-      knockback: 0
-    });
-  }
-
-  /**
-   * 基本的な遠距離攻撃スキルを作成（簡易作成用）
-   * @param name スキル名
-   * @param power 威力
-   * @returns 遠距離攻撃スキル
-   */
-  static createBasicRangeSkill(name: string, power: number): RangeSkill {
-    return SkillFactory.createRangeSkill({
-      id: `range_${name.toLowerCase().replace(/\s+/g, '_')}`,
-      name: name,
-      description: `Basic ranged attack: ${name}`,
-      cooldown: 4000,
-      targetType: 0, // SINGLE
-      effectType: 0, // DAMAGE
-      range: 300,
-      power: power,
-      accuracy: 0.9
-    });
-  }
-
-  /**
-   * 基本的な範囲攻撃スキルを作成（簡易作成用）
-   * @param name スキル名
-   * @param power 威力
-   * @param radius 範囲半径
-   * @returns 範囲攻撃スキル
-   */
-  static createBasicAreaSkill(name: string, power: number, radius: number = 150): AreaSkill {
-    return SkillFactory.createAreaSkill({
-      id: `area_${name.toLowerCase().replace(/\s+/g, '_')}`,
-      name: name,
-      description: `Area attack: ${name}`,
-      cooldown: 6000,
-      targetType: 1, // AREA
-      effectType: 0, // DAMAGE
-      range: 200,
-      power: power,
-      areaRadius: radius,
-      falloff: true
-    });
+// スキルを生成するファクトリー関数
+export function createSkill(config: SkillConfig) {
+  switch (config.targetType) {
+    case SkillTargetType.SINGLE:
+      if (config.range > 200) {
+        return new RangeSkill(config);
+      } else {
+        return new MeleeSkill(config);
+      }
+    case SkillTargetType.AREA:
+      return new AreaSkill(config);
+    default:
+      throw new Error(`Unsupported skill target type: ${config.targetType}`);
   }
 }
