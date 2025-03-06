@@ -162,13 +162,7 @@ export class Stage {
       }
 
       // EnemyFactoryを使って敵を生成
-      const enemy = EnemyFactory.createEnemy(
-        enemyType,
-        this.scene,
-        x,
-        y,
-        enemyConfig.level || 1
-      );
+      const enemy = EnemyFactory.createEnemy(enemyType, this.scene, x, y, enemyConfig.level || 1);
 
       // カスタムステータスの適用（設定されている場合）
       // この部分はEnemyUnitクラスに移動しています
@@ -256,11 +250,11 @@ export class Stage {
 
       // 経験値と報酬計算
       let totalExp = this.config.rewards.exp;
-      let totalGold = this.config.rewards.gold;
+      const totalGold = this.config.rewards.gold;
       const items = [...(this.config.rewards.items || [])];
 
       // EnemyUnitから報酬を取得
-      this.enemyUnits.forEach(unit => {
+      this.enemyUnits.forEach((unit) => {
         if (unit instanceof EnemyUnit) {
           const rewards = unit.getRewards();
           totalExp += rewards.experience;

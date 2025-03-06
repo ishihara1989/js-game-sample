@@ -7,19 +7,13 @@ import { BattleScene } from '../../scenes/BattleScene';
 export enum EnemyType {
   GOBLIN = 'goblin',
   ORC = 'orc',
-  SLIME = 'slime'
+  SLIME = 'slime',
 }
 
 // エネミー生成のファクトリークラス
 export class EnemyFactory {
   // エネミーを生成するファクトリーメソッド
-  static createEnemy(
-    type: EnemyType,
-    scene: BattleScene,
-    x: number,
-    y: number,
-    level: number = 1
-  ) {
+  static createEnemy(type: EnemyType, scene: BattleScene, x: number, y: number, level: number = 1) {
     switch (type) {
       case EnemyType.GOBLIN:
         return new GoblinEnemy({ scene, x, y, level });
