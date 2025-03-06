@@ -98,25 +98,54 @@ export class ResultScene extends Phaser.Scene {
   }
 
   private getResultDetails(): string {
-    const victorName = this.result.victorUnit.name;
-    const defeatedName = this.result.defeatedUnit.name;
+    // ユニット情報がある場合はそれを使用し、ない場合は新しいスタイルのリザルトを表示
+    if (this.result.victorUnit && this.result.defeatedUnit) {
+      const victorName = this.result.victorUnit.name;
+      const defeatedName = this.result.defeatedUnit.name;
 
-    if (this.result.victory) {
-      return `${victorName} has defeated ${defeatedName}!\n\nCongratulations!`;
+      if (this.result.victory) {
+        return `${victorName} has defeated ${defeatedName}!\n\nCongratulations!`;
+      } else {
+        return `${defeatedName} was defeated by ${victorName}...\n\nBetter luck next time!`;
+      }
     } else {
-      return `${defeatedName} was defeated by ${victorName}...\n\nBetter luck next time!`;
+      // 新しいリザルト表示スタイル
+      if (this.result.victory) {
+        const stageInfo = this.result.stageId ? `Stage ${this.result.stageId} cleared!` : 'Stage cleared!';
+        const enemiesInfo = this.result.enemiesDefeated ? `Defeated ${this.result.enemiesDefeated} enemies.` : '';
+        
+        return `${stageInfo}\n${enemiesInfo}\n\nCongratulations!`;
+      } else {
+        return `You have been defeated...\n\nBetter luck next time!`;
+      }
     }
   }
 
   private getRewardsText(): string {
     let text = 'Rewards:\n\n';
 
-    text += `EXP: ${this.result.exp}\n`;
-    text += `Gold: ${this.result.gold}\n`;
+    // 古いスタイルのリワード
+    if (this.result.exp !== undefined) {
+      text += `EXP: ${this.result.exp}\n`;
+    } else if (this.result.experienceGained !== undefined) {
+      text += `EXP: ${this.result.experienceGained}\n`;
+    }
 
+    if (this.result.gold !== undefined) {
+      text += `Gold: ${this.result.gold}\n`;
+    }
+
+    // アイテム表示（旧スタイル）
     if (this.result.items && this.result.items.length > 0) {
       text += '\nItems:\n';
       this.result.items.forEach((item) => {
+        text += `- ${item}\n`;
+      });
+    } 
+    // アイテム表示（新スタイル）
+    else if (this.result.itemsDropped && this.result.itemsDropped.length > 0) {
+      text += '\nItems:\n';
+      this.result.itemsDropped.forEach((item) => {
         text += `- ${item}\n`;
       });
     }

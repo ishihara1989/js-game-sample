@@ -1,235 +1,153 @@
 import { Unit } from '../objects/Unit';
 import { Skill, SkillConfig, SkillEffectType, SkillTargetType } from './Skill';
-// Add Phaser import for direct usage
-import Phaser from 'phaser';
 
 /**
- * 範囲攻撃スキル設定インターフェース
+ * 範囲攻撃スキルの設定インターフェース
  */
 export interface AreaSkillConfig extends SkillConfig {
-  falloff?: boolean; // 距離による減衰があるか
-  falloffRate?: number; // 減衰率
-  maxTargets?: number; // 最大対象数
+  falloff?: boolean; // 距離減衰があるか
+  falloffRate?: number; // 減衰率（0.0〜1.0）
 }
 
 /**
  * 範囲攻撃スキルクラス
- * 指定範囲内の敵全てに影響を与えるスキル
+ * 広範囲に効果を与えるスキル
  */
 export class AreaSkill extends Skill {
-  private falloff: boolean;
-  private falloffRate: number;
-  private maxTargets: number;
+  // 距離減衰の有無
+  readonly falloff: boolean;
+  // 距離に応じたダメージ減衰率
+  readonly falloffRate: number;
 
   /**
    * コンストラクタ
    * @param config スキル設定
    */
   constructor(config: AreaSkillConfig) {
-    // デフォルト値を設定
-    const areaConfig: AreaSkillConfig = {
-      ...config,
-      targetType: SkillTargetType.AREA,
-      areaRadius: config.areaRadius || 150, // デフォルト範囲
-    };
+    super(config);
+    
+    this.falloff = config.falloff !== undefined ? config.falloff : true;
+    this.falloffRate = config.falloffRate !== undefined ? config.falloffRate : 0.5;
+    
+    // 範囲スキルの場合、TargetTypeはAREAに強制
+    if (this.targetType !== SkillTargetType.AREA) {
+      console.warn(`AreaSkill ${this.name} had incorrect targetType. Forcing to AREA.`);
+    }
 
-    super(areaConfig);
-    this.falloff = config.falloff ?? true;
-    this.falloffRate = config.falloffRate ?? 0.5;
-    this.maxTargets = config.maxTargets ?? 0; // 0は無制限
+    // 範囲半径の確認
+    if (!this.areaRadius || this.areaRadius <= 0) {
+      console.warn(`AreaSkill ${this.name} has no valid areaRadius. Setting to default 100.`);
+      (this as any).areaRadius = 100;
+    }
   }
 
   /**
-   * スキル効果を適用
-   * @param target 対象ユニット（範囲の中心）
-   * @returns 成功したらtrue
+   * スキル効果の適用
+   * @param target 中心とする対象ユニット
+   * @returns 適用成功ならtrue
    */
   protected applyEffect(target: Unit): boolean {
     if (!this.owner || !this.owner.battleScene) return false;
 
-    // 範囲内の全てのユニットを取得
-    const targets = this.getTargetsInArea(target);
-    if (targets.length === 0) return false;
-
-    // 範囲エフェクトを表示
-    this.showAreaEffect(target.x, target.y);
-
-    // 各ターゲットに効果を適用
-    targets.forEach((targetUnit) => {
-      this.applyEffectToTarget(targetUnit, target);
+    // 中心座標を取得
+    const centerX = target.x;
+    const centerY = target.y;
+    
+    // 範囲内の対象を取得
+    const targets = this.getTargetsInArea(centerX, centerY);
+    
+    // 効果がない場合はスキル使用失敗
+    if (targets.length === 0) {
+      console.warn(`${this.owner.name}'s ${this.name} affected no targets.`);
+      return false;
+    }
+    
+    // 各対象にスキル効果を適用
+    targets.forEach(targetUnit => {
+      this.applyEffectToTarget(targetUnit, centerX, centerY);
     });
-
-    console.warn(`${this.owner.name} uses ${this.name} affecting ${targets.length} units!`);
+    
+    // エフェクト表示（中心点のみ）
+    // this.owner と this.owner.battleScene は既にチェック済みだが、
+    // TypeScriptの型チェックのために再度確認
+    if (this.owner && this.owner.battleScene) {
+      this.owner.battleScene.showSkillEffect(this.owner, target);
+    }
+    
+    // this.ownerは既にチェック済みだが、TypeScriptの型チェックのために再度確認
+    if (this.owner) {
+      console.warn(`${this.owner.name} uses ${this.name} affecting ${targets.length} targets!`);
+    }
+    
     return true;
   }
-
+  
   /**
-   * 範囲内のターゲットを取得
-   * @param center 中心ユニット
+   * 範囲内の対象ユニットを取得
+   * @param centerX 中心X座標
+   * @param centerY 中心Y座標
    * @returns 範囲内のユニット配列
    */
-  private getTargetsInArea(center: Unit): Unit[] {
+  private getTargetsInArea(centerX: number, centerY: number): Unit[] {
     if (!this.owner || !this.owner.battleScene) return [];
-
-    // 全てのユニットを取得
+    
+    // バトルシーンから全ユニットを取得
     const allUnits = this.owner.battleScene.getAllUnits();
-
-    // 敵のみをフィルタリング
-    const enemies = allUnits.filter(
-      (unit) => unit.isPlayer !== this.owner?.isPlayer && unit !== center
-    );
-
-    // 範囲内の敵を抽出
-    const targetsInRange = enemies.filter((enemy) => {
-      const distance = Phaser.Math.Distance.Between(center.x, center.y, enemy.x, enemy.y);
+    
+    // 対象を絞り込む（敵のみ）
+    return allUnits.filter(unit => {
+      // 自分自身は除外
+      if (unit === this.owner) return false;
+      
+      // プレイヤーとエネミーで対象を区別
+      if (this.owner && this.owner.isPlayer && unit.isPlayer) return false; // プレイヤーなら味方は対象外
+      if (this.owner && !this.owner.isPlayer && !unit.isPlayer) return false; // エネミーなら敵エネミーは対象外
+      
+      // 範囲内かどうか判定
+      const distance = Phaser.Math.Distance.Between(
+        centerX, centerY, unit.x, unit.y
+      );
+      
       return distance <= this.areaRadius;
     });
-
-    // 距離でソート（近い順）
-    targetsInRange.sort((a, b) => {
-      const distA = Phaser.Math.Distance.Between(center.x, center.y, a.x, a.y);
-      const distB = Phaser.Math.Distance.Between(center.x, center.y, b.x, b.y);
-      return distA - distB;
-    });
-
-    // 最大対象数を制限
-    if (this.maxTargets > 0 && targetsInRange.length > this.maxTargets) {
-      return targetsInRange.slice(0, this.maxTargets);
-    }
-
-    return targetsInRange;
   }
-
+  
   /**
-   * 個別のターゲットに効果を適用
-   * @param targetUnit 対象ユニット
-   * @param center 中心ユニット
+   * 個別のターゲットにスキル効果を適用
+   * @param target 対象ユニット
+   * @param centerX 中心X座標
+   * @param centerY 中心Y座標
    */
-  private applyEffectToTarget(targetUnit: Unit, center: Unit): void {
+  private applyEffectToTarget(target: Unit, centerX: number, centerY: number): void {
     if (!this.owner) return;
-
-    // 距離に基づく効果の減衰を計算
-    let effectPower = this.power;
-
+    
+    // 中心からの距離を計算
+    const distance = Phaser.Math.Distance.Between(
+      centerX, centerY, target.x, target.y
+    );
+    
+    // 距離に応じたダメージ係数（距離減衰あり/なし）
+    let damageMultiplier = 1.0;
     if (this.falloff) {
-      const distance = Phaser.Math.Distance.Between(center.x, center.y, targetUnit.x, targetUnit.y);
-
-      // 距離に応じて効果を減衰
-      const distanceRatio = distance / this.areaRadius;
-      effectPower = this.power * (1 - distanceRatio * this.falloffRate);
+      // 距離が離れるほど効果が減衰
+      damageMultiplier = 1.0 - (distance / this.areaRadius) * this.falloffRate;
     }
-
-    // 効果タイプに応じて処理
-    switch (this.effectType) {
-      case SkillEffectType.DAMAGE: {
-        // ダメージ計算（防御力の影響を考慮）
-        const damage = Math.max(1, effectPower - targetUnit.defense / 3);
-        targetUnit.takeDamage(damage);
-        break;
+    
+    // スキル効果タイプによって処理を分岐
+    if (this.effectType === SkillEffectType.DAMAGE) {
+      // ダメージ計算（防御効果は中程度）
+      const damage = Math.max(1, 
+        (this.power + this.owner.attackPower * 0.6 - target.defense / 4) * damageMultiplier
+      );
+      
+      // ターゲットにダメージを与える
+      target.takeDamage(damage);
+      
+      // デバッグ表示は主要なターゲットのみ
+      if (distance < 50) {
+        console.warn(`${this.name} hits ${target.name} for ${damage} damage!`);
       }
-
-      case SkillEffectType.HEAL:
-        // 味方の場合は回復（未実装）
-        // TODO: 回復機能の実装
-        break;
-
-      case SkillEffectType.BUFF:
-      case SkillEffectType.DEBUFF:
-        // バフ/デバフ効果（未実装）
-        // TODO: バフ/デバフシステムの実装
-        break;
     }
-
-    // ターゲットごとの小さいエフェクト
-    this.showTargetEffect(targetUnit.x, targetUnit.y);
-  }
-
-  /**
-   * 範囲エフェクトを表示
-   * @param x 中心X座標
-   * @param y 中心Y座標
-   */
-  private showAreaEffect(x: number, y: number): void {
-    if (!this.owner || !this.owner.battleScene) return;
-
-    // エフェクト色を効果タイプに応じて設定
-    let color = 0xffaa00;
-    switch (this.effectType) {
-      case SkillEffectType.DAMAGE:
-        color = 0xff3300;
-        break;
-      case SkillEffectType.HEAL:
-        color = 0x00ff33;
-        break;
-      case SkillEffectType.BUFF:
-        color = 0x00aaff;
-        break;
-      case SkillEffectType.DEBUFF:
-        color = 0xaa00ff;
-        break;
-    }
-
-    // 範囲エフェクトグラフィックを作成
-    const areaEffect = this.owner.battleScene.add.graphics();
-    areaEffect.fillStyle(color, 0.3);
-    areaEffect.fillCircle(0, 0, this.areaRadius);
-    areaEffect.lineStyle(2, color, 0.8);
-    areaEffect.strokeCircle(0, 0, this.areaRadius);
-    areaEffect.setDepth(4);
-    areaEffect.setPosition(x, y);
-
-    // エフェクトのアニメーション
-    this.owner.battleScene.tweens.add({
-      targets: areaEffect,
-      alpha: 0,
-      duration: 800,
-      onComplete: () => {
-        areaEffect.destroy();
-      },
-    });
-  }
-
-  /**
-   * ターゲットに対する個別エフェクトを表示
-   * @param x X座標
-   * @param y Y座標
-   */
-  private showTargetEffect(x: number, y: number): void {
-    if (!this.owner || !this.owner.battleScene) return;
-
-    // ターゲットエフェクト色
-    let color = 0xffaa00;
-    switch (this.effectType) {
-      case SkillEffectType.DAMAGE:
-        color = 0xff3300;
-        break;
-      case SkillEffectType.HEAL:
-        color = 0x00ff33;
-        break;
-      case SkillEffectType.BUFF:
-        color = 0x00aaff;
-        break;
-      case SkillEffectType.DEBUFF:
-        color = 0xaa00ff;
-        break;
-    }
-
-    // ターゲットエフェクトを作成
-    const targetEffect = this.owner.battleScene.add.graphics();
-    targetEffect.fillStyle(color, 0.6);
-    targetEffect.fillCircle(0, 0, 10);
-    targetEffect.setDepth(6);
-    targetEffect.setPosition(x, y);
-
-    // エフェクトのアニメーション
-    this.owner.battleScene.tweens.add({
-      targets: targetEffect,
-      alpha: 0,
-      scale: 1.5,
-      duration: 400,
-      onComplete: () => {
-        targetEffect.destroy();
-      },
-    });
+    // 他の効果タイプの実装も可能（回復、バフなど）
   }
 }
